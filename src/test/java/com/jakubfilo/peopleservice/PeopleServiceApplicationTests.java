@@ -1,10 +1,10 @@
-package com.jakubfilo.demoservicea;
+package com.jakubfilo.peopleservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class DemoServiceAApplicationTests {
+class PeopleServiceApplicationTests {
 
 	@Test
 	void contextLoads() {
