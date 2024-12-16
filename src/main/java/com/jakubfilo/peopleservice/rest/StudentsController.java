@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.jakubfilo.peopleservice.facade.StudentsFacade;
+import com.jakubfilo.peopleservice.rest.response.EnrichedStudentRepresentation;
 import com.jakubfilo.peopleservice.rest.response.MultipleStudentsDetailRepresentation;
 import com.jakubfilo.peopleservice.rest.response.StudentDetailRepresentation;
 
@@ -44,6 +45,15 @@ public class StudentsController {
 	@GetMapping("/detail/{id}/brief")
 	public ResponseEntity<StudentDetailRepresentation> getStudentDetailsBrief(@NotBlank @PathVariable(name = "id") String studentId) {
 		var studentDetail = studentFacade.getStudentDetailBrief(studentId);
+		return studentDetail.map(ResponseEntity::ok)
+				.orElse(ResponseEntity.notFound().build());
+	}
+
+	@GetMapping("/detail/{id}/complete")
+	public ResponseEntity<EnrichedStudentRepresentation> getStudentEnrichedWithCourseInfo(
+			@NotBlank @PathVariable(name = "id") String studentId) {
+
+		var studentDetail = studentFacade.getStudentDetailEnriched(studentId);
 		return studentDetail.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}

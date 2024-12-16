@@ -4,3 +4,7 @@ spring:
 
 server:
   port: 7000
+
+clientsConfiguration:
+  schoolService:
+    host: http://localhost:8000
