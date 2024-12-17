@@ -20,6 +20,8 @@ public class StudentDbo {
 	String name;
 	String email;
 	PhoneNumber phoneNumber;
-	float gpa;
-	Set<String> courses;
+	@Builder.Default
+	float gpa = 0;
+	@Builder.Default
+	Set<String> courses = Set.of();
 }

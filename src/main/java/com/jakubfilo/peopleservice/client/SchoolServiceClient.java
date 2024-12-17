@@ -10,8 +10,11 @@ import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.jakubfilo.peopleservice.client.api.CourseDetailRepresentationApi;
+import com.jakubfilo.peopleservice.client.api.EnrollStudentInCoursesResponse;
 import com.jakubfilo.peopleservice.client.api.MultipleCourseDetail;
 import com.jakubfilo.peopleservice.config.FeignClientConfiguration.SchoolServiceClientConfiguration;
 
@@ -30,6 +33,7 @@ public interface SchoolServiceClient {
 	Logger LOGGER = LoggerFactory.getLogger(SchoolServiceClient.class);
 
 	String COURSE_BATCH_LOOKUP_RESOURCE = "/course/lookup/batch";
+	String COURSE_ENROLL_STUDENT_RESOURCE = "/course/enroll";
 
 	default MultipleCourseDetail getCourseDetailsBatchLookup(Set<String> courseIds) {
 		var response = getCourseDetailsBatchLookupApi(courseIds);
@@ -47,18 +51,34 @@ public interface SchoolServiceClient {
 		return courseDetails;
 	}
 
-	@GetMapping
-	ResponseEntity<Set<CourseDetailRepresentationApi>> getCourseDetailsBatchLookupApi(Set<String> courseIds);
+	@GetMapping(COURSE_BATCH_LOOKUP_RESOURCE)
+	ResponseEntity<Set<CourseDetailRepresentationApi>> getCourseDetailsBatchLookupApi(@RequestParam("courseIds") Set<String> courseIds);
+
+	@PostMapping(COURSE_ENROLL_STUDENT_RESOURCE)
+	EnrollStudentInCoursesResponse enrollStudentToCourses(@RequestParam("courseIds") Set<String> courseIds,
+			@RequestParam("studentId") String studentId);
 
 	class Fallback implements FallbackFactory<SchoolServiceClient> {
 
 		@Override
 		public SchoolServiceClient create(Throwable cause) {
-			return courseIds -> {
-				LOGGER.warn("Exception during getCourseDetailsBatchLookup('{}'), returning fallback", courseIds, cause);
-				return ResponseEntity
-						.status(SchoolServiceResponseCodes.INCOMPLETE_COURSE_INFO.getStatusCode())
-						.body(Set.of());
+			return new SchoolServiceClient() {
+				@Override
+				public ResponseEntity<Set<CourseDetailRepresentationApi>> getCourseDetailsBatchLookupApi(Set<String> courseIds) {
+					LOGGER.warn("Exception during getCourseDetailsBatchLookup('{}'), returning fallback", courseIds, cause);
+					return ResponseEntity
+							.status(SchoolServiceResponseCodes.INCOMPLETE_COURSE_INFO.getStatusCode())
+							.body(Set.of());
+				}
+
+				@Override
+				public EnrollStudentInCoursesResponse enrollStudentToCourses(Set<String> courseIds, String studentId) {
+					LOGGER.warn("Exception during enrollStudentToCourses('{}', '{}'), returning fallback", courseIds, studentId, cause);
+					return EnrollStudentInCoursesResponse.builder()
+							.studentId(studentId)
+							.invalidCourses(courseIds)
+							.build();
+				}
 			};
 		}
 	}

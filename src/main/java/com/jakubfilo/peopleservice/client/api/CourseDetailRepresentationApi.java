@@ -12,8 +12,6 @@ import lombok.Value;
 @Value
 public class CourseDetailRepresentationApi { // TODO add not null annotations
 
-	// TODO created based on api spec from school service
-
 	String id;
 	String courseName;
 	String courseCode;

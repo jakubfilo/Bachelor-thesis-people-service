@@ -1,18 +1,21 @@
 package com.jakubfilo.peopleservice.domain;
 
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
 public enum PhoneNumberCountryCode {
 
-	CZ("Czech Republic", "+420"),
-	SK("Slovakia", "+421"),
-	US("United States", "+1"),
-	UK("United Kingdom", "+44"),
-	DE("Germany", "+49");
+	CZ("CZ", "+420"),
+	SK("SK", "+421"),
+	US("US", "+1"),
+	UK("UK", "+44"),
+	DE("GE", "+49");
 
-	private String country;
-	private String countryCode;
+	@NotNull
+	private final String country;
+	@NotNull
+	private final String countryCode;
 }

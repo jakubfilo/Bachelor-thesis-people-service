@@ -9,13 +9,16 @@ import org.springframework.stereotype.Component;
 import com.jakubfilo.peopleservice.client.SchoolServiceClient;
 import com.jakubfilo.peopleservice.db.StudentsRepository;
 import com.jakubfilo.peopleservice.db.dbo.StudentDbo;
+import com.jakubfilo.peopleservice.rest.exception.DuplicateStudentException;
 import com.jakubfilo.peopleservice.rest.response.CourseRepresentation;
 import com.jakubfilo.peopleservice.rest.response.EnrichedStudentRepresentation;
 import com.jakubfilo.peopleservice.rest.response.MultipleStudentsDetailRepresentation;
 import com.jakubfilo.peopleservice.rest.response.StudentDetailRepresentation;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @AllArgsConstructor
 @Component
 public class StudentsFacade {
@@ -61,5 +64,27 @@ public class StudentsFacade {
 								.collect(Collectors.toSet()))
 						.allCoursesInfoPresent(multipleCourseDetail.isCourseInfoComplete())
 						.build());
+	}
+
+	public StudentDetailRepresentation enrollStudent(StudentDetailRepresentation studentDetail) {
+
+		if (studentsRepository.existsById(studentDetail.getId())) {
+			LOGGER.warn("Student with id '{}' already exists", studentDetail.getId());
+			throw new DuplicateStudentException(studentDetail.getId());
+		}
+
+		var studentDbo = StudentDbo.builder()
+				.id(studentDetail.getId())
+				.name(studentDetail.getName())
+				.email(studentDetail.getEmail())
+				.phoneNumber(studentDetail.getPhoneNumber())
+				.gpa(studentDetail.getGpa())
+				.courses(studentDetail.getCourses())
+				.build();
+
+		studentsRepository.save(studentDbo);
+		schoolServiceClient.enrollStudentToCourses(studentDetail.getCourses(), studentDetail.getId());
+
+		return studentDetail;
 	}
 }

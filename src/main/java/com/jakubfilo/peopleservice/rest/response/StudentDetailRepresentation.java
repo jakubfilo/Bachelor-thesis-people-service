@@ -5,6 +5,8 @@ import java.util.Set;
 import com.jakubfilo.peopleservice.db.dbo.StudentDbo;
 import com.jakubfilo.peopleservice.domain.PhoneNumber;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
@@ -14,12 +16,18 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class StudentDetailRepresentation {
 
+	@NotBlank
 	String id;
+	@NotBlank
 	String name;
+	@NotBlank
 	String email;
+	@NotNull
 	PhoneNumber phoneNumber;
-	float gpa;
-	Set<String> courses;
+	@Builder.Default
+	float gpa = 0;
+	@Builder.Default
+	Set<String> courses = Set.of();
 	// TODO add deparment? Does every student need to have a department to be under?
 	// TODO extend?
 
@@ -43,8 +51,6 @@ public class StudentDetailRepresentation {
 						.number("Unknown")
 						.country(null)
 						.build())
-				.gpa(0)
-				.courses(Set.of())
 				.build();
 	}
 }
