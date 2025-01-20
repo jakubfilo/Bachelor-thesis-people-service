@@ -28,7 +28,6 @@ public class StudentDetailRepresentation {
 	float gpa = 0;
 	@Builder.Default
 	Set<String> courses = Set.of();
-	// TODO add deparment? Does every student need to have a department to be under?
 	// TODO extend?
 
 	public static StudentDetailRepresentation from(StudentDbo studentDbo) {

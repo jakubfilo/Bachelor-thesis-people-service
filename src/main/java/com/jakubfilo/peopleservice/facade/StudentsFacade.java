@@ -10,6 +10,7 @@ import com.jakubfilo.peopleservice.client.SchoolServiceClient;
 import com.jakubfilo.peopleservice.db.StudentsRepository;
 import com.jakubfilo.peopleservice.db.dbo.StudentDbo;
 import com.jakubfilo.peopleservice.rest.exception.DuplicateStudentException;
+import com.jakubfilo.peopleservice.rest.exception.InvalidCoursesException;
 import com.jakubfilo.peopleservice.rest.response.CourseRepresentation;
 import com.jakubfilo.peopleservice.rest.response.EnrichedStudentRepresentation;
 import com.jakubfilo.peopleservice.rest.response.MultipleStudentsDetailRepresentation;
@@ -83,8 +84,12 @@ public class StudentsFacade {
 				.build();
 
 		studentsRepository.save(studentDbo);
-		schoolServiceClient.enrollStudentToCourses(studentDetail.getCourses(), studentDetail.getId());
+		var enrolledStudentResponse = schoolServiceClient.enrollStudentToCourses(studentDetail.getCourses(), studentDetail.getId());
+		if (!enrolledStudentResponse.getInvalidCourses().isEmpty()) {
+			throw new InvalidCoursesException(enrolledStudentResponse.getInvalidCourses());
+		}
 
+		LOGGER.info("Student with id '{}' successfully enrolled to courses '{}'", studentDetail.getId(), studentDetail.getCourses());
 		return studentDetail;
 	}
 }
