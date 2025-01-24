@@ -14,6 +14,4 @@ public class EnrollStudentInCoursesResponse {
 	String studentId;
 	@Builder.Default
 	Set<String> enrolledCourses = Set.of();
-	@Builder.Default
-	Set<String> invalidCourses = Set.of();
 }

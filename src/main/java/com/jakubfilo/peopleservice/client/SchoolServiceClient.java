@@ -76,7 +76,7 @@ public interface SchoolServiceClient {
 					LOGGER.warn("Exception during enrollStudentToCourses('{}', '{}'), returning fallback", courseIds, studentId, cause);
 					return EnrollStudentInCoursesResponse.builder()
 							.studentId(studentId)
-							.invalidCourses(courseIds)
+							.enrolledCourses(Set.of())
 							.build();
 				}
 			};

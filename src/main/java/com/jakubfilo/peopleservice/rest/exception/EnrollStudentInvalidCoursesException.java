@@ -7,10 +7,10 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class InvalidCoursesException extends ServiceException {
+public class EnrollStudentInvalidCoursesException extends ServiceException {
 
 	private static final int INVALID_COURSES_STATUS_CODE = 404;
-	private static final String ERROR = "INVALID_COURSES_EXCEPTION";
+	private static final String ERROR = "ENROLL_STUDENT_INVALID_COURSES_EXCEPTION";
 
 	private final Set<String> invalidCourseIds;
 

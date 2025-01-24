@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.jakubfilo.peopleservice.facade.StudentsFacade;
+import com.jakubfilo.peopleservice.rest.exception.EnrollStudentInvalidCoursesException;
 import com.jakubfilo.peopleservice.rest.response.EnrichedStudentRepresentation;
 import com.jakubfilo.peopleservice.rest.response.MultipleStudentsDetailRepresentation;
 import com.jakubfilo.peopleservice.rest.response.StudentDetailRepresentation;
@@ -64,7 +65,7 @@ public class StudentsController {
 
 	/**
 	 * A good example of API spec benefits. Outsider doesn't need to know the internal logic of the service.
-	 * I can have various exception mappings {@link com.jakubfilo.peopleservice.rest.exception.InvalidCoursesException}
+	 * I can have various exception mappings {@link EnrollStudentInvalidCoursesException}
 	 * mapped to various responses (e.g. in {@link ControllerAdvisor})
 	 * With the API spec, one can simply go over the expected return codes and responses and know what to expect.
 	 */

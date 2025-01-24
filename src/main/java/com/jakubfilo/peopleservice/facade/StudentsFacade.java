@@ -10,7 +10,7 @@ import com.jakubfilo.peopleservice.client.SchoolServiceClient;
 import com.jakubfilo.peopleservice.db.StudentsRepository;
 import com.jakubfilo.peopleservice.db.dbo.StudentDbo;
 import com.jakubfilo.peopleservice.rest.exception.DuplicateStudentException;
-import com.jakubfilo.peopleservice.rest.exception.InvalidCoursesException;
+import com.jakubfilo.peopleservice.rest.exception.EnrollStudentInvalidCoursesException;
 import com.jakubfilo.peopleservice.rest.response.CourseRepresentation;
 import com.jakubfilo.peopleservice.rest.response.EnrichedStudentRepresentation;
 import com.jakubfilo.peopleservice.rest.response.MultipleStudentsDetailRepresentation;
@@ -68,11 +68,11 @@ public class StudentsFacade {
 	}
 
 	public StudentDetailRepresentation enrollStudent(StudentDetailRepresentation studentDetail) {
-
 		if (studentsRepository.existsById(studentDetail.getId())) {
 			LOGGER.warn("Student with id '{}' already exists", studentDetail.getId());
 			throw new DuplicateStudentException(studentDetail.getId());
 		}
+		var studentCourses = studentDetail.getCourses();
 
 		var studentDbo = StudentDbo.builder()
 				.id(studentDetail.getId())
@@ -80,16 +80,23 @@ public class StudentsFacade {
 				.email(studentDetail.getEmail())
 				.phoneNumber(studentDetail.getPhoneNumber())
 				.gpa(studentDetail.getGpa())
-				.courses(studentDetail.getCourses())
+				.courses(studentCourses)
 				.build();
 
 		studentsRepository.save(studentDbo);
 		var enrolledStudentResponse = schoolServiceClient.enrollStudentToCourses(studentDetail.getCourses(), studentDetail.getId());
-		if (!enrolledStudentResponse.getInvalidCourses().isEmpty()) {
-			throw new InvalidCoursesException(enrolledStudentResponse.getInvalidCourses());
+		var enrolledCourses = enrolledStudentResponse.getEnrolledCourses();
+		if (enrolledCourses.size() != studentCourses.size()) {
+			var invalidCourses = studentCourses.stream()
+					.filter(courseId -> !enrolledCourses.contains(courseId))
+					.collect(Collectors.toSet());
+
+			LOGGER.warn("Student with id '{}' could not be enrolled to courses as they are invalid '{}'", studentDetail.getId(),
+					invalidCourses);
+			throw new EnrollStudentInvalidCoursesException(invalidCourses);
 		}
 
-		LOGGER.info("Student with id '{}' successfully enrolled to courses '{}'", studentDetail.getId(), studentDetail.getCourses());
+		LOGGER.info("Student with id '{}' successfully enrolled to all courses '{}'", studentDetail.getId(), studentDetail.getCourses());
 		return studentDetail;
 	}
 }
