@@ -15,6 +15,7 @@ import com.jakubfilo.peopleservice.rest.response.CourseRepresentation;
 import com.jakubfilo.peopleservice.rest.response.EnrichedStudentRepresentation;
 import com.jakubfilo.peopleservice.rest.response.MultipleStudentsDetailRepresentation;
 import com.jakubfilo.peopleservice.rest.response.StudentDetailRepresentation;
+import com.jakubfilo.peopleservice.rest.response.StudentTimetableRepresentation;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,14 @@ public class StudentsFacade {
 
 	private final StudentsRepository studentsRepository;
 	private final SchoolServiceClient schoolServiceClient;
+	private CoursesFacade coursesFacade;
+
+	public Optional<StudentTimetableRepresentation> getTimetableForStudent(String studentId) {
+		return studentsRepository.findById(studentId)
+				.map(StudentDbo::getCourses)
+				.map(courseIds -> coursesFacade.getTimetableForCourses(courseIds, studentId))
+				.map(timetable -> new StudentTimetableRepresentation(studentId, timetable));
+	}
 
 	public StudentDetailRepresentation getStudentDetailWithFallback(String studentId) {
 		return studentsRepository.findById(studentId)

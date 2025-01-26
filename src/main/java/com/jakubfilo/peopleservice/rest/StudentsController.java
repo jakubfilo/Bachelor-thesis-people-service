@@ -21,6 +21,7 @@ import com.jakubfilo.peopleservice.rest.exception.EnrollStudentInvalidCoursesExc
 import com.jakubfilo.peopleservice.rest.response.EnrichedStudentRepresentation;
 import com.jakubfilo.peopleservice.rest.response.MultipleStudentsDetailRepresentation;
 import com.jakubfilo.peopleservice.rest.response.StudentDetailRepresentation;
+import com.jakubfilo.peopleservice.rest.response.StudentTimetableRepresentation;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -75,5 +76,12 @@ public class StudentsController {
 
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(enrolledStudent);
+	}
+
+	@GetMapping("/timetable/{id}")
+	public ResponseEntity<StudentTimetableRepresentation> getTimetableForStudent(@PathVariable(name = "id") String studentId) {
+		var timetable = studentFacade.getTimetableForStudent(studentId);
+		return timetable.map(ResponseEntity::ok)
+				.orElse(ResponseEntity.notFound().build());
 	}
 }

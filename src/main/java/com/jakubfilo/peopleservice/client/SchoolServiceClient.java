@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.jakubfilo.peopleservice.client.api.CourseDetailRepresentationApi;
+import com.jakubfilo.peopleservice.client.api.CourseTimetableDetail;
 import com.jakubfilo.peopleservice.client.api.EnrollStudentInCoursesResponse;
 import com.jakubfilo.peopleservice.client.api.MultipleCourseDetail;
 import com.jakubfilo.peopleservice.config.FeignClientConfiguration.SchoolServiceClientConfiguration;
+import com.jakubfilo.peopleservice.rest.exception.InvalidCourseIdsException;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ public interface SchoolServiceClient {
 
 	String COURSE_BATCH_LOOKUP_RESOURCE = "/course/lookup/batch";
 	String COURSE_ENROLL_STUDENT_RESOURCE = "/course/enroll";
+	String COURSE_TIMETABLE_BATCH_LOOKUP_RESOURCE = "/course/time/batch";
 
 	default MultipleCourseDetail getCourseDetailsBatchLookup(Set<String> courseIds) {
 		var response = getCourseDetailsBatchLookupApi(courseIds);
@@ -51,6 +54,15 @@ public interface SchoolServiceClient {
 		return courseDetails;
 	}
 
+	default Set<CourseTimetableDetail> getCourseTimetableBatchLookup(Set<String> courseIds, String studentId) {
+		var response = getCourseTimetableBatchLookupApi(courseIds);
+
+		if (response.getStatusCode().value() == SchoolServiceResponseCodes.INVALID_COURSE_ID.getStatusCode()) {
+			throw new InvalidCourseIdsException(studentId, courseIds);
+		}
+		return response.getBody();
+	}
+
 	@GetMapping(COURSE_BATCH_LOOKUP_RESOURCE)
 	ResponseEntity<Set<CourseDetailRepresentationApi>> getCourseDetailsBatchLookupApi(@RequestParam("courseIds") Set<String> courseIds);
 
@@ -58,6 +70,10 @@ public interface SchoolServiceClient {
 	EnrollStudentInCoursesResponse enrollStudentToCourses(@RequestParam("courseIds") Set<String> courseIds,
 			@RequestParam("studentId") String studentId);
 
+	@GetMapping(COURSE_TIMETABLE_BATCH_LOOKUP_RESOURCE)
+	ResponseEntity<Set<CourseTimetableDetail>> getCourseTimetableBatchLookupApi(@RequestParam("courseIds") Set<String> courseIds);
+
+	// if there are issues with connecting to School service, return fallback, usually empty response.
 	class Fallback implements FallbackFactory<SchoolServiceClient> {
 
 		@Override
@@ -79,6 +95,11 @@ public interface SchoolServiceClient {
 							.enrolledCourses(Set.of())
 							.build();
 				}
+
+				@Override
+				public ResponseEntity<Set<CourseTimetableDetail>> getCourseTimetableBatchLookupApi(Set<String> courseIds) {
+					return null;
+				}
 			};
 		}
 	}
@@ -87,7 +108,8 @@ public interface SchoolServiceClient {
 	@Getter
 	// Status codes of School service, as mentioned in its API spec
 	enum SchoolServiceResponseCodes {
-		INCOMPLETE_COURSE_INFO(206);
+		INCOMPLETE_COURSE_INFO(206),
+		INVALID_COURSE_ID(404);
 
 		private final int statusCode;
 	}
