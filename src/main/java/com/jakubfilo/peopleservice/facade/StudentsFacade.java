@@ -7,8 +7,11 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import com.jakubfilo.peopleservice.client.SchoolServiceClient;
+import com.jakubfilo.peopleservice.db.NotificationRepository;
 import com.jakubfilo.peopleservice.db.StudentsRepository;
+import com.jakubfilo.peopleservice.db.dbo.NotificationDbo;
 import com.jakubfilo.peopleservice.db.dbo.StudentDbo;
+import com.jakubfilo.peopleservice.domain.StudentNotification;
 import com.jakubfilo.peopleservice.rest.exception.DuplicateStudentException;
 import com.jakubfilo.peopleservice.rest.exception.EnrollStudentInvalidCoursesException;
 import com.jakubfilo.peopleservice.rest.response.CourseRepresentation;
@@ -26,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class StudentsFacade {
 
 	private final StudentsRepository studentsRepository;
+	private final NotificationRepository notificationRepository;
 	private final SchoolServiceClient schoolServiceClient;
 	private CoursesFacade coursesFacade;
 
@@ -107,5 +111,15 @@ public class StudentsFacade {
 
 		LOGGER.info("Student with id '{}' successfully enrolled to all courses '{}'", studentDetail.getId(), studentDetail.getCourses());
 		return studentDetail;
+	}
+
+	public void notifyStudent(StudentNotification notification) {
+		var notificationDbo = NotificationDbo.builder()
+				.studentId(notification.getStudentId())
+				.courseId(notification.getCourseId())
+				.type(notification.getType())
+				.message(notification.getMessage())
+				.build();
+		notificationRepository.save(notificationDbo);
 	}
 }

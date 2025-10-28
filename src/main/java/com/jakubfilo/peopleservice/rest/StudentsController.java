@@ -16,7 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.jakubfilo.peopleservice.domain.StudentNotification;
 import com.jakubfilo.peopleservice.facade.StudentsFacade;
+import com.jakubfilo.peopleservice.mapper.NotificationMapper;
+import com.jakubfilo.peopleservice.rest.dto.StudentNotificationDto;
 import com.jakubfilo.peopleservice.rest.exception.EnrollStudentInvalidCoursesException;
 import com.jakubfilo.peopleservice.rest.response.EnrichedStudentRepresentation;
 import com.jakubfilo.peopleservice.rest.response.MultipleStudentsDetailRepresentation;
@@ -39,6 +42,7 @@ public class StudentsController {
 	public static final String STUDENTS_PATH = "/students";
 
 	private final StudentsFacade studentFacade;
+	private NotificationMapper notificationMapper = NotificationMapper.INSTANCE;
 
 	@GetMapping("/detail/batch-lookup")
 	public ResponseEntity<MultipleStudentsDetailRepresentation> getStudentDetailsBatchLookup(
@@ -84,4 +88,29 @@ public class StudentsController {
 		return timetable.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}
+
+	@PostMapping("/notify/{id}")
+	public ResponseEntity<StudentNotification> notifyStudent(@PathVariable(name = "id") String studentId,
+			@RequestBody StudentNotificationDto studentNotificationApi) {
+
+		var studentNotification = notificationMapper.map(studentNotificationApi, studentId);
+		studentFacade.notifyStudent(studentNotification);
+		return ResponseEntity.ok(studentNotification);
+	}
+
+//	/**
+//	 * This is a demo endpoint to show why we should use DTOs instead of domain objects directly.
+//	 * By using a DTO, I can avoid having to write the studentId in the request body.
+//	 * However, in the domain object, I need the studentId to identify the student.
+//	 * By splitting DTOs and domain objects I am no longer required to make sacrifices in any of the 2 ways
+//	 * NOTE: I am not saying that using or not using the DI in the object is either good or bad practice. It just shows
+//	 * how we can achieve better isolation of domain and API layers.
+//	 */
+//	@PostMapping("/notify/{id}/demo-why-to-use-dto")
+//	public ResponseEntity<StudentNotification> notifyStudentDemoNoIdInRequestBody(
+//			@PathVariable(name = "id") String studentId,
+//			@RequestBody @Valid StudentNotification studentNotification) {
+//		studentFacade.notifyStudent(studentNotification);
+//		return ResponseEntity.ok(studentNotification);
+//	}
 }

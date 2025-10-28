@@ -23,5 +23,5 @@ public class StudentDbo {
 	@Builder.Default
 	float gpa = 0;
 	@Builder.Default
-	Set<String> courses = Set.of();
+	Set<String> courses = Set.of(); // TODO can this be an unmodifiable set????
 }
