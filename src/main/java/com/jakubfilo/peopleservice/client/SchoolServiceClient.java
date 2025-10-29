@@ -74,6 +74,7 @@ public interface SchoolServiceClient {
 	ResponseEntity<Set<CourseTimetableDetail>> getCourseTimetableBatchLookupApi(@RequestParam("courseIds") Set<String> courseIds);
 
 	// if there are issues with connecting to School service, return fallback, usually empty response.
+	// in my case, I return responses with empty body, such as 'enrolledCourses(Set.of())'
 	class Fallback implements FallbackFactory<SchoolServiceClient> {
 
 		@Override
