@@ -1,9 +1,12 @@
 spring:
   application:
     name: people-service
+  cloud:
+    compatibility-verifier:
+      enabled: false
 
 server:
-  port: 7000
+  port: 8080
 
 clientsConfiguration:
   schoolService:

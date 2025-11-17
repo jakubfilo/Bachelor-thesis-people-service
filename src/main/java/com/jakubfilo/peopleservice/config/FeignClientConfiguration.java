@@ -7,12 +7,8 @@ import org.springframework.context.annotation.Configuration;
 
 import com.jakubfilo.peopleservice.client.SchoolServiceClient;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
 @Configuration
 @EnableFeignClients(basePackages = "com.jakubfilo.peopleservice.client")
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FeignClientConfiguration {
 
 	public static class SchoolServiceClientConfiguration {

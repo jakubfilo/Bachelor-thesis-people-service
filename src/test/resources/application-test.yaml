@@ -1,0 +1,11 @@
+de.flapdoodle:
+  mongodb:
+    embedded:
+      version: 8.0.5
+
+
+spring:
+  data:
+    mongodb:
+      uri: "mongodb://localhost:27017/test"
+      auto-index-creation: true
