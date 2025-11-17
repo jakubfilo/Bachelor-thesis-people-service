@@ -1,4 +1,4 @@
-name: Publish OpenAPI Spec to Backstage
+name: Generate and publish OpenAPI spec
 run-name: ${{ github.actor }} published OpenAPI spec for ${{ github.ref_name }}
 
 defaults:
