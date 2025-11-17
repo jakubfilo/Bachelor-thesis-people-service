@@ -1,0 +1,43 @@
+name: Generate OpenAPI spec
+description: Generate OpenAPI spec from code and save to Github artifact
+
+inputs:
+  artifact_name:
+    description: Name of the artifact to save the OpenAPI spec as
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+  - uses: actions/setup-java@v4
+    with:
+      java-version-file: .java-version
+      distribution: corretto
+
+  - name: Maven cache
+    uses: actions/cache/restore@v4
+    id: maven-cache
+    with:
+      path: ~/.m2
+      key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+      restore-keys: |
+        ${{ runner.os }}-m2-
+
+  - shell: sh
+    run: ./mvnw -B verify -Ddefault.tests.skip=true -Dopenapi.skip=false -Dspring.profiles.active=test
+
+  - name: Upload OpenAPI spec as artifact
+    uses: actions/upload-artifact@v4
+    with:
+      name: ${{ inputs.artifact_name }}
+      path: ./api/people-service-api.json
+      overwrite: true
+      retention-days: 1
+
+  - name: Save Maven cache if not hit
+    if: steps.maven-cache.outputs.cache-hit != 'true'
+    uses: actions/cache/save@v4
+    with:
+      path: ~/.m2
+      key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}

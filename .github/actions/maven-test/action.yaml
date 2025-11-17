@@ -1,0 +1,33 @@
+name: Maven verify
+description: Run all maven tests and sonar analysis
+
+runs:
+  using: composite
+
+  steps:
+  - uses: actions/setup-java@v4
+    with:
+      java-version-file: .java-version
+      distribution: corretto
+
+  - name: Maven cache
+    uses: actions/cache/restore@v4
+    id: maven-cache
+    with:
+      path: ~/.m2
+      key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+      restore-keys: |
+        ${{ runner.os }}-m2-
+
+  - shell: sh
+    run: ./mvnw -B validate
+
+  - shell: sh
+    run: ./mvnw -B verify
+
+  - name: Save cache if not hit
+    if: steps.maven-cache.outputs.cache-hit != 'true'
+    uses: actions/cache/save@v4
+    with:
+      path: ~/.m2
+      key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
