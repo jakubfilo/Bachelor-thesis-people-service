@@ -1,0 +1,39 @@
+name: Release pipeline
+run-name: ${{ github.actor }} ran release pipeline for ${{ github.event_name == 'pull_request' && github.event.pull_request.title || github.ref_name }}
+
+defaults:
+  run:
+    shell: sh
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+
+permissions: write-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
+jobs:
+  setup:
+    name: Setup pipeline
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.short-sha }}
+      owner: ${{ steps.owner.outputs.owner }}
+    steps:
+    - uses: actions/checkout@v5
+    - id: version
+      run: echo "short-sha=$(echo $GITHUB_SHA | cut -c 1-7)" >> $GITHUB_OUTPUT
+    - id: owner
+      run: echo "owner=$(yq '.spec.owner' ./catalog-info.yaml | head -1)" >> $GITHUB_OUTPUT
+
+  test:
+    name: Run Maven test and Sonar
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/maven-test
