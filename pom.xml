@@ -241,7 +241,7 @@
                             <modelPackage>${package.name}.client.model</modelPackage>
                             <invokerPackage>${package.name}.client.invoker</invokerPackage>
                             <configOptions>
-                                <library>feign</library>
+                                <library>resttemplate</library>
                                 <dateLibrary>java8</dateLibrary>
                                 <useJakartaEe>true</useJakartaEe>
                             </configOptions>

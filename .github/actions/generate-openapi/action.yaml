@@ -25,7 +25,7 @@ runs:
         ${{ runner.os }}-m2-
 
   - shell: sh
-    run: ./mvnw -B verify -Ddefault.tests.skip=true -Dopenapi.skip=false -Dspring.profiles.active=test
+    run: ./mvnw -B install -DskipTests -Dopenapi.skip=false -Dspring.profiles.active=test
 
   - name: Upload OpenAPI spec as artifact
     uses: actions/upload-artifact@v4

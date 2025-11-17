@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SchoolServiceClient {
 
+
 	private final ExternalCourseControllerApi externalCourseControllerApi;
 	private final CourseControllerApi courseControllerApi;
 
@@ -27,19 +28,19 @@ public class SchoolServiceClient {
 		var apiResponse = externalCourseControllerApi.getCourseDetailsBatchWithHttpInfo(courseIds);
 
 		return MultipleCourseDetail.builder()
-				.courses(apiResponse.getData())
-				.courseInfoComplete(apiResponse.getStatusCode() < 400
-						&& apiResponse.getStatusCode() != SchoolServiceResponseCodes.INCOMPLETE_COURSE_INFO.getStatusCode())
+				.courses(apiResponse.getBody())
+				.courseInfoComplete(apiResponse.getStatusCode().value() != SchoolServiceResponseCodes.INCOMPLETE_COURSE_INFO.getStatusCode()
+						&& !apiResponse.getStatusCode().isError())
 				.build();
 	}
 
 	public Set<CourseTimetableDetail> getCourseTimetableBatchLookup(Set<String> courseIds, String studentId) {
 		var response = courseControllerApi.getCourseTimesWithHttpInfo(courseIds);
 
-		if (response.getStatusCode() == SchoolServiceResponseCodes.INVALID_COURSE_ID.getStatusCode()) {
+		if (response.getStatusCode().value() == SchoolServiceResponseCodes.INVALID_COURSE_ID.getStatusCode()) {
 			throw new InvalidCourseIdsException(studentId, courseIds);
 		}
-		return response.getData();
+		return response.getBody();
 	}
 
 	public EnrollStudentInCoursesResponse enrollStudentToCourses(String studentId, Set<String> courseIds) {
