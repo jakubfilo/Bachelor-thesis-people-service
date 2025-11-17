@@ -66,7 +66,7 @@ public class StudentsFacade {
 		var student = studentsRepository.findById(studentId);
 
 		return student.map(StudentDbo::getCourses)
-				.map(schoolServiceClient::getCourseDetailsBatchLookup)
+				.map(schoolServiceClient::getCoursesDetailBatchLookup)
 				.map(multipleCourseDetail -> EnrichedStudentRepresentation.builder()
 						.id(studentId)
 						.name(student.get().getName())
@@ -97,7 +97,7 @@ public class StudentsFacade {
 				.build();
 
 		studentsRepository.save(studentDbo);
-		var enrolledStudentResponse = schoolServiceClient.enrollStudentToCourses(studentDetail.getCourses(), studentDetail.getId());
+		var enrolledStudentResponse = schoolServiceClient.enrollStudentToCourses(studentDetail.getId(), studentDetail.getCourses());
 		var enrolledCourses = enrolledStudentResponse.getEnrolledCourses();
 		if (enrolledCourses.size() != studentCourses.size()) {
 			var invalidCourses = studentCourses.stream()

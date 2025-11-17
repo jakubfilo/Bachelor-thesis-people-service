@@ -21,6 +21,7 @@
         <java.version>21</java.version>
 		<mapstruct.version>1.6.3</mapstruct.version>
 		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+        <openapi-generator-maven-plugin.version>7.9.0</openapi-generator-maven-plugin.version>
 		<springdoc.openapi.plugin.version>1.5</springdoc.openapi.plugin.version>
 		<openapi.skip>true</openapi.skip>
     </properties>
@@ -60,6 +61,27 @@
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>2.8.13</version>
 		</dependency>
+
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-core</artifactId>
+            <version>13.6</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-jackson</artifactId>
+            <version>13.6</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-okhttp</artifactId>
+            <version>13.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.8</version>
+        </dependency>
 
 
         <dependency>
@@ -201,6 +223,32 @@
 					</execution>
 				</executions>
 			</plugin>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi-generator-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>api-client</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <generatorName>java</generatorName>
+                            <inputSpec>${project.basedir}/provider-apis/school-service-api.json</inputSpec>
+                            <output>${project.build.directory}/generated-sources/openapi-client</output>
+                            <apiPackage>${package.name}.client.api</apiPackage>
+                            <modelPackage>${package.name}.client.model</modelPackage>
+                            <invokerPackage>${package.name}.client.invoker</invokerPackage>
+                            <configOptions>
+                                <library>feign</library>
+                                <dateLibrary>java8</dateLibrary>
+                                <useJakartaEe>true</useJakartaEe>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
     <repositories>

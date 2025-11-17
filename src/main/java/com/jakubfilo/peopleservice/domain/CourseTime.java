@@ -1,4 +1,4 @@
-package com.jakubfilo.peopleservice.client.api;
+package com.jakubfilo.peopleservice.domain;
 
 import java.time.DayOfWeek;
 

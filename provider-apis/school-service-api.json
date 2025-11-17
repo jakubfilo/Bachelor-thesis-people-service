@@ -1,0 +1,913 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "School service",
+    "version": "latest"
+  },
+  "paths": {
+    "/school/course/all/id": {
+      "get": {
+        "tags": [
+          "course-controller"
+        ],
+        "summary": "Return ids of all courses",
+        "operationId": "getAllCoursesIds",
+        "responses": {
+          "200": {
+            "description": "All course ids",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/school/course/all/available": {
+      "get": {
+        "tags": [
+          "course-controller"
+        ],
+        "summary": "Return brief detail of courses that are available for student to take (e.g. not yet completed)",
+        "operationId": "getAllAvailableCourses",
+        "parameters": [
+          {
+            "name": "department",
+            "in": "query",
+            "description": "Department Type",
+            "schema": {
+              "$ref": "#/components/schemas/DepartmentType"
+            }
+          },
+          {
+            "name": "term",
+            "in": "query",
+            "description": "Term",
+            "schema": {
+              "$ref": "#/components/schemas/Term"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "Start year of the course",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1993,
+              "maximum": 2100
+            }
+          },
+          {
+            "name": "credits",
+            "in": "query",
+            "description": "Credits of the course",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0,
+              "maximum": 60
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(Brief) details of all available courses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseDetailBrief"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/school/course/all/detail": {
+      "get": {
+        "tags": [
+          "course-controller"
+        ],
+        "summary": "Return complete details of all courses",
+        "operationId": "getAllCoursesDetails",
+        "responses": {
+          "200": {
+            "description": "All course details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MultipleCourseDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/school/course/all/detail/brief": {
+      "get": {
+        "tags": [
+          "course-controller"
+        ],
+        "summary": "Return brief details of all courses",
+        "operationId": "getAllCoursesDetailsBrief",
+        "responses": {
+          "200": {
+            "description": "All course brief details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MultipleCourseDetailBrief"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/school/course/{courseId}/detail": {
+      "get": {
+        "tags": [
+          "course-controller"
+        ],
+        "summary": "Return details of course with given id",
+        "operationId": "getCourseDetail",
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "description": "Id of course to return",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail for course with given Id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course not found"
+          }
+        }
+      }
+    },
+    "/school/course/{courseId}/detail/brief": {
+      "get": {
+        "tags": [
+          "course-controller"
+        ],
+        "summary": "Return brief details of course with given id",
+        "operationId": "getCourseDetailBrief",
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "description": "Id of course to return",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Brief detail for course with given Id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseDetailBrief"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course not found"
+          }
+        }
+      }
+    },
+    "/school/course/{courseId}/students": {
+      "get": {
+        "tags": [
+          "course-controller"
+        ],
+        "summary": "Return list of students (enriched with info from student service) enrolled in course with given id. When People service is unavailable, returns list of only student ids without enriching",
+        "operationId": "getCourseStudents",
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "description": "Id of course to return students for",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of students enrolled in course with given Id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentsInCourse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course not found"
+          },
+          "503": {
+            "description": "Student service is unavailable"
+          }
+        }
+      }
+    },
+    "/school/course/{courseId}/students/no-fallback": {
+      "get": {
+        "tags": [
+          "course-controller-demo-cases"
+        ],
+        "summary": "Return list of students (enriched with info from student service) enrolled in course with given id.",
+        "operationId": "getCourseStudentsNoFallback",
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "description": "Id of course to return students for",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of students enrolled in course with given Id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentsInCourse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course not found"
+          },
+          "503": {
+            "description": "Student service is unavailable"
+          }
+        }
+      }
+    },
+    "/school/course/{courseId}/students/not-implemented": {
+      "get": {
+        "tags": [
+          "course-controller-demo-cases"
+        ],
+        "summary": "Should return list of students in a course enriched with info from people service. However, people service has not been implemented yet. Returns only list of student ids",
+        "operationId": "getCourseStudentsNotImplemented",
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "description": "Id of course to return students for",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of students enrolled in course with given Id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentsInCourse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course not found"
+          },
+          "503": {
+            "description": "Student service is unavailable"
+          }
+        }
+      }
+    },
+    "/school/course/lookup/batch": {
+      "get": {
+        "tags": [
+          "external-course-controller"
+        ],
+        "summary": "Return details of courses with given ids, skips the ones that are not found",
+        "operationId": "getCourseDetailsBatch",
+        "parameters": [
+          {
+            "name": "courseIds",
+            "in": "query",
+            "description": "List of course ids to return details for",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Details for courses with given Ids. All courses were found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseDetail"
+                  },
+                  "uniqueItems": true
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Some courses were not found. Returning details for found courses. Log failed ids for audit purposes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseDetail"
+                  },
+                  "uniqueItems": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/school/course/time/batch/": {
+      "get": {
+        "tags": [
+          "course-controller"
+        ],
+        "summary": "Return time details for a batch of courses",
+        "operationId": "getCourseTimes",
+        "parameters": [
+          {
+            "name": "courseIds",
+            "in": "query",
+            "description": "List of course ids to return time details for",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Time details for courses with given Ids",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseTimetableDetail"
+                  },
+                  "uniqueItems": true
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Some courses were not found"
+          }
+        }
+      }
+    },
+    "/school/course/enroll": {
+      "post": {
+        "tags": [
+          "external-course-controller"
+        ],
+        "summary": "Enroll student in given courses",
+        "operationId": "enrollStudentInCourses",
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "query",
+            "description": "Id of student to enroll",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseIds",
+            "in": "query",
+            "description": "List of course ids to enroll student in",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Student enrolled in all courses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrollStudentInCoursesResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Some courses were not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrollStudentInCoursesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/school/department/list": {
+      "get": {
+        "tags": [
+          "department-controller"
+        ],
+        "summary": "Return list of all departments",
+        "operationId": "getAllDepartments",
+        "responses": {
+          "200": {
+            "description": "All departments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/school/department/detail": {
+      "get": {
+        "tags": [
+          "department-controller"
+        ],
+        "summary": "Return detail of selected department",
+        "operationId": "getAllDepartmentDetails",
+        "parameters": [
+          {
+            "name": "department",
+            "in": "query",
+            "description": "Department Type",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DepartmentType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All department details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Department not found"
+          }
+        }
+      }
+    },
+    "/school/department/head": {
+      "get": {
+        "tags": [
+          "department-controller"
+        ],
+        "summary": "Return details about head of department",
+        "operationId": "getDepartmentHead",
+        "parameters": [
+          {
+            "name": "department",
+            "in": "query",
+            "description": "Department Type",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DepartmentType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Head of department",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentHeadDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DepartmentType": {
+        "type": "string",
+        "enum": [
+          "COMPUTER_SCIENCE",
+          "MATHEMATICS",
+          "MECHANICAL_ENGINEERING",
+          "SCIENCE"
+        ]
+      },
+      "Department": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DepartmentType"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "name": "Computer Science",
+          "description": "Department of Computer Science"
+        }
+      },
+      "DepartmentList": {
+        "type": "object",
+        "properties": {
+          "departments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Department"
+            }
+          }
+        }
+      },
+      "CourseIds": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CourseDetail": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "courseCode"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "departmentId": {
+            "type": "string"
+          },
+          "departmentType": {
+            "$ref": "#/components/schemas/DepartmentType"
+          },
+          "credits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teacherId": {
+            "type": "string"
+          },
+          "term": {
+            "$ref": "#/components/schemas/Term"
+          },
+          "startYear": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1993,
+            "maximum": 2100
+          },
+          "enrolledStudentsIds": {
+            "type": "array",
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "enrolledStudentsCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "courseTime": {
+            "$ref": "#/components/schemas/CourseTime"
+          },
+          "roomId": {
+            "type": "string"
+          }
+        }
+      },
+      "Term": {
+        "type": "string",
+        "enum": [
+          "WINTER",
+          "SUMMER"
+        ]
+      },
+      "MultipleCourseDetail": {
+        "type": "object",
+        "properties": {
+          "courses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CourseDetail"
+            }
+          },
+          "coursesCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "StudentsInCourse": {
+        "type": "object",
+        "properties": {
+          "students": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentDetail"
+            }
+          },
+          "studentsCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "StudentDetail": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "courses": {
+            "type": "array",
+            "default": [],
+            "items": {
+              "type": "string",
+              "uniqueItems": true
+            }
+          },
+          "gpa": {
+            "type": "number",
+            "format": "float"
+          }
+        }
+      },
+      "MultipleStudentsDetail": {
+        "type": "object",
+        "properties": {
+          "students": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentDetail"
+            },
+            "uniqueItems": true
+          },
+          "studentsCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CourseDetailBrief": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "courseCode"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "credits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "term": {
+            "$ref": "#/components/schemas/Term"
+          },
+          "startYear": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1993,
+            "maximum": 2100
+          }
+        }
+      },
+      "MultipleCourseDetailBrief": {
+        "type": "object",
+        "properties": {
+          "courses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CourseDetailBrief"
+            }
+          },
+          "coursesCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DepartmentHeadDetail": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "department": {
+            "$ref": "#/components/schemas/Department"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        }
+      },
+      "DepartmentDetail": {
+        "type": "object",
+        "properties": {
+          "department": {
+            "$ref": "#/components/schemas/Department"
+          },
+          "courses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CourseDetail"
+            }
+          },
+          "head": {
+            "$ref": "#/components/schemas/DepartmentHeadDetail"
+          }
+        }
+      },
+      "EnrollStudentInCoursesResponse": {
+        "type": "object",
+        "properties": {
+          "studentId": {
+            "type": "string"
+          },
+          "enrolledCourses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true,
+            "default": []
+          }
+        }
+      },
+      "DayOfWeek": {
+        "type": "string",
+        "enum": [
+          "MONDAY",
+          "TUESDAY",
+          "WEDNESDAY",
+          "THURSDAY",
+          "FRIDAY"
+        ]
+      },
+      "CourseTime": {
+        "type": "object",
+        "properties": {
+          "daysOfWeek": {
+            "$ref": "#/components/schemas/DayOfWeek"
+          },
+          "startHour": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 23
+          },
+          "startMinute": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 59
+          },
+          "endHour": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 23
+          },
+          "endMinute": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 59
+          }
+        }
+      },
+      "CourseTimetableDetail": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "string"
+          },
+          "courseTime": {
+            "$ref": "#/components/schemas/CourseTime"
+          },
+          "roomId": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

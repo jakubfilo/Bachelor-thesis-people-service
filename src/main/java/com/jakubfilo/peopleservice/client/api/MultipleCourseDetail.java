@@ -2,6 +2,8 @@ package com.jakubfilo.peopleservice.client.api;
 
 import java.util.Set;
 
+import com.jakubfilo.peopleservice.client.model.CourseDetail;
+
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 import lombok.Value;
@@ -14,7 +16,7 @@ public class MultipleCourseDetail {
 
 	@Builder.Default
 	@NotEmpty
-	Set<CourseDetailRepresentationApi> courses = Set.of();
+	Set<CourseDetail> courses = Set.of();
 	@Builder.Default
 	boolean courseInfoComplete = true;
 }

@@ -2,7 +2,7 @@ package com.jakubfilo.peopleservice.rest.response;
 
 import com.jakubfilo.peopleservice.api.DepartmentType;
 import com.jakubfilo.peopleservice.api.Term;
-import com.jakubfilo.peopleservice.client.api.CourseDetailRepresentationApi;
+import com.jakubfilo.peopleservice.client.model.CourseDetail;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -29,19 +29,19 @@ public class CourseRepresentation {
 	int startYear;
 	int enrolledStudentsCount;
 
-	public static CourseRepresentation from(CourseDetailRepresentationApi courseDetailRepresentationApi) {
+	public static CourseRepresentation from(CourseDetail courseDetailApi) {
 		return CourseRepresentation.builder()
-				.id(courseDetailRepresentationApi.getId())
-				.courseName(courseDetailRepresentationApi.getCourseName())
-				.courseCode(courseDetailRepresentationApi.getCourseCode())
-				.credits(courseDetailRepresentationApi.getCredits())
-				.description(courseDetailRepresentationApi.getDescription())
-				.departmentId(courseDetailRepresentationApi.getDepartmentId())
-				.departmentType(courseDetailRepresentationApi.getDepartmentType())
-				.teacherId(courseDetailRepresentationApi.getTeacherId())
-				.term(courseDetailRepresentationApi.getTerm())
-				.startYear(courseDetailRepresentationApi.getStartYear())
-				.enrolledStudentsCount(courseDetailRepresentationApi.getEnrolledStudentsCount())
+				.id(courseDetailApi.getId())
+				.courseName(courseDetailApi.getCourseName())
+				.courseCode(courseDetailApi.getCourseCode())
+				.credits(courseDetailApi.getCredits())
+				.description(courseDetailApi.getDescription())
+				.departmentId(courseDetailApi.getDepartmentId())
+				.departmentType(DepartmentType.fromGeneratedApiLayer(courseDetailApi.getDepartmentType()))
+				.teacherId(courseDetailApi.getTeacherId())
+				.term(Term.fromGeneratedApiLayer(courseDetailApi.getTerm()))
+				.startYear(courseDetailApi.getStartYear())
+				.enrolledStudentsCount(courseDetailApi.getEnrolledStudentsCount())
 				.build();
 		// wanted to separate Api object from school service, as it can contain unnecessary fields like enrolledStudentsIds
 		// could also be done using Mapstruct. This is an alternative

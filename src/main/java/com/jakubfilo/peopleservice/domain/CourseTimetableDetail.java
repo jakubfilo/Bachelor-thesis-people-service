@@ -1,4 +1,4 @@
-package com.jakubfilo.peopleservice.client.api;
+package com.jakubfilo.peopleservice.domain;
 
 public record CourseTimetableDetail(String courseId, CourseTime courseTime, String roomId) implements Comparable<CourseTimetableDetail> {
 
