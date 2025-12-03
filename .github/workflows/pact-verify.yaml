@@ -1,0 +1,112 @@
+name: Pact - Verify contracts
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+env:
+  PACT_BROKER_URL: ${{ vars.PACT_BROKER_URL }}
+  GIT_COMMIT: ${{ github.sha }}
+  COMPONENT_NAME_PASCAL_CASE: PeopleService
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    outputs:
+      long-sha: ${{ steps.get-sha.outputs.long-sha }}
+      short-sha: ${{ steps.get-sha.outputs.short-sha }}
+      branch-name: ${{ steps.get-sha.outputs.branch-name }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+    - shell: sh
+      id: get-sha
+      run: |
+        LONG_SHA=$(git rev-parse "$GIT_COMMIT")
+        echo "long-sha=$LONG_SHA" >> $GITHUB_OUTPUT
+        SHORT_SHA=$(git rev-parse --short=7 "$GIT_COMMIT")
+        echo "short-sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+        BRANCH_NAME=${{ github.head_ref || github.ref_name }}
+        echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+  contract-verification:
+    name: Contract verification
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+      with:
+        ref: ${{needs.setup.outputs.long-sha}}
+
+    - name: Set up JDK
+      uses: actions/setup-java@v5
+      with:
+        java-version-file: .java-version
+        distribution: corretto
+
+    - name: Maven cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-m2-
+
+    - name: Contract validation
+      shell: sh
+      run: |
+        ./mvnw verify pact:publish \
+            -Dpact.tests.skip=false \
+            -Ddefault.tests.skip=true \
+            -Dpactbroker.url=${{ secrets.PACT_BROKER_URL }} \
+            -Dpactbroker.auth.username=${{ secrets.PACT_BROKER_USERNAME }} \
+            -Dpactbroker.auth.password="${{ secrets.PACT_BROKER_PASSWORD }}" \
+            -Dpact.broker.url=${{ env.PACT_URL }} \
+            -Dpact.broker.user="${{ secrets.PACT_BROKER_USERNAME }}" \
+            -Dpact.broker.password="${{ secrets.PACT_BROKER_PASSWORD }}" \
+            -Dpact.verifier.publishResults=true \
+            -Dpact.provider.version=${{ needs.setup.outputs.short-sha }} \
+            -Dpactbroker.providerBranch=${{ needs.setup.outputs.branch-name }} \
+            -Dpact.provider.branch=${{ needs.setup.outputs.branch-name }} \
+            -Dpact.consumer.version=${{ needs.setup.outputs.short-sha }} \
+            -Dpact.publish.consumer.branchName=${{ needs.setup.outputs.branch-name }} \
+            -Dpact.tags=${{ needs.setup.outputs.short-sha }} \
+            -Dpact_do_not_track=true
+#    pactbroker.X is for provider part
+#    pact.broker.X is for consumer part
+    - name: Contracts Report
+      uses: dorny/test-reporter@v2
+      if: success() || failure()
+      with:
+        name: Contract Tests
+        path: target/failsafe-reports/*.pact.*.xml
+        reporter: java-junit
+
+  can-i-deploy:
+#    if: github.ref != github.event.repository.default_branch # should be here but I have to uncomment
+    needs: [ setup, contract-verification ]
+    name: Can I Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Can I deploy shared GHA
+      uses: pactflow/actions/can-i-deploy@v2
+      with:
+        broker_url: ${{ secrets.PACT_BROKER_URL }}
+        username: ${{ secrets.PACT_BROKER_USERNAME }}
+        password: ${{ secrets.PACT_BROKER_PASSWORD }}
+        application_name: ${{ env.COMPONENT_NAME_PASCAL_CASE }}
+        version: ${{ needs.setup.outputs.short-sha }}
+        retry_while_unknown: 10
+        retry_interval: 10
+

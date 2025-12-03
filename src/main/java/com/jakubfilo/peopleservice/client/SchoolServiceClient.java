@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SchoolServiceClient {
 
-
 	private final ExternalCourseControllerApi externalCourseControllerApi;
 	private final CourseControllerApi courseControllerApi;
 

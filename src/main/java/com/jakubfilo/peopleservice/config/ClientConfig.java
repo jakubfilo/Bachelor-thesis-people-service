@@ -22,6 +22,6 @@ public class ClientConfig {
 
 	@Bean
 	public ApiClient apiClient() {
-		return new ApiClient();
+		return new ApiClient().setBasePath("http://localhost:8000");
 	}
 }

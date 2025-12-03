@@ -8,6 +8,6 @@ spring:
 server:
   port: 8080
 
-clientsConfiguration:
+openapi:
   schoolService:
-    host: http://localhost:8000
+    base-path: http://localhost:8000
