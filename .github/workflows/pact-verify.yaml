@@ -67,10 +67,10 @@ jobs:
         ./mvnw verify pact:publish \
             -Dpact.tests.skip=false \
             -Ddefault.tests.skip=true \
-            -Dpactbroker.url=${{ secrets.PACT_BROKER_URL }} \
+            -Dpactbroker.url=${{ env.PACT_BROKER_URL }} \
             -Dpactbroker.auth.username=${{ secrets.PACT_BROKER_USERNAME }} \
             -Dpactbroker.auth.password="${{ secrets.PACT_BROKER_PASSWORD }}" \
-            -Dpact.broker.url=${{ env.PACT_URL }} \
+            -Dpact.broker.url=${{ env.PACT_BROKER_URL }} \
             -Dpact.broker.user="${{ secrets.PACT_BROKER_USERNAME }}" \
             -Dpact.broker.password="${{ secrets.PACT_BROKER_PASSWORD }}" \
             -Dpact.verifier.publishResults=true \
