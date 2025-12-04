@@ -28,7 +28,7 @@ public class SchoolServiceClient {
 
 		return MultipleCourseDetail.builder()
 				.courses(apiResponse.getBody())
-				.courseInfoComplete(apiResponse.getStatusCode().value() != SchoolServiceResponseCodes.INCOMPLETE_COURSE_INFO.getStatusCode()
+				.courseInfoComplete(apiResponse.getStatusCode().value() != SchoolServiceResponseCodes.BATCH_LOOKUP_INCOMPLETE_COURSE_INFO.getStatusCode()
 						&& !apiResponse.getStatusCode().isError())
 				.build();
 	}
@@ -36,7 +36,7 @@ public class SchoolServiceClient {
 	public Set<CourseTimetableDetail> getCourseTimetableBatchLookup(Set<String> courseIds, String studentId) {
 		var response = courseControllerApi.getCourseTimesWithHttpInfo(courseIds);
 
-		if (response.getStatusCode().value() == SchoolServiceResponseCodes.INVALID_COURSE_ID.getStatusCode()) {
+		if (response.getStatusCode().value() == SchoolServiceResponseCodes.SINGLE_COURSE_LOOKUP_INVALID_COURSE_ID.getStatusCode()) {
 			throw new InvalidCourseIdsException(studentId, courseIds);
 		}
 		return response.getBody();
@@ -49,9 +49,10 @@ public class SchoolServiceClient {
 	@RequiredArgsConstructor
 	@Getter
 	// Status codes of School service, as mentioned in its API spec
-	enum SchoolServiceResponseCodes {
-		INCOMPLETE_COURSE_INFO(206),
-		INVALID_COURSE_ID(404);
+	public enum SchoolServiceResponseCodes {
+		BATCH_LOOKUP_INCOMPLETE_COURSE_INFO(206),
+		BATCH_LOOKUP_NO_COURSES_FOUND(404),
+		SINGLE_COURSE_LOOKUP_INVALID_COURSE_ID(404);
 
 		private final int statusCode;
 	}

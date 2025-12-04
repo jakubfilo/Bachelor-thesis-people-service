@@ -1,6 +1,7 @@
 package com.jakubfilo.peopleservice.client.pact;
 
 import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonArrayUnordered;
+import static com.jakubfilo.peopleservice.client.SchoolServiceClient.SchoolServiceResponseCodes.BATCH_LOOKUP_NO_COURSES_FOUND;
 import static com.jakubfilo.peopleservice.client.pact.PactConstants.PEOPLE_SERVICE_COMPONENT_NAME;
 import static com.jakubfilo.peopleservice.client.pact.PactConstants.SCHOOL_SERVICE_COMPONENT_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,7 +63,7 @@ class SchoolServiceClientPactTest {
 		var response = schoolServiceClient.getCoursesDetailBatchLookup(Set.of("COURSE1", "COURSE2"));
 
 		assertThat(response).isNotNull();
-		assertThat(response.getCourses()).hasSize(1);
+		assertThat(response.getCourses()).hasSize(2);
 		assertThat(response.isCourseInfoComplete()).isTrue();
 	}
 
@@ -74,13 +75,108 @@ class SchoolServiceClientPactTest {
 				course.stringType("courseCode", "MATH101");
 				course.stringType("description", "An introductory course to Mathematics.");
 				course.stringType("departmentId", "DEPT1");
-				course.stringMatcher("departmentType", "COMPUTER_SCIENCE|MATHEMATICS|MECHANICAL_ENGINEERING|SCIENCE");
+				course.stringMatcher("departmentType", "COMPUTER_SCIENCE|MATHEMATICS|MECHANICAL_ENGINEERING|SCIENCE", "MATHEMATICS");
 				course.numberType("credits", 5);
 				course.stringType("teacherId", "TEACHER1");
 				course.stringMatcher("term", "WINTER|SUMMER", "WINTER");
 				course.numberType("startYear", 2024);
 				course.unorderedArray("enrolledStudentsIds", student -> student.stringType("STUDENT1"));
-				course.numberType("enrolledStudentsCount", 2);
+				course.numberType("enrolledStudentsCount", 1);
+				course.object("courseTime", ct -> {
+					ct.stringType("daysOfWeek", "MONDAY");
+					ct.numberType("startHour", 8);
+					ct.numberType("startMinute", 30);
+					ct.numberType("endHour", 10);
+					ct.numberType("endMinute", 0);
+				});
+				course.stringType("roomId", "ROOM101");
+			});
+			array.object(course -> {
+				course.stringType("id", "COURSE2");
+				course.stringType("courseName", "Engineering");
+				course.stringType("courseCode", "ENG101");
+				course.stringType("description", "An introductory course to Engineering.");
+				course.stringType("departmentId", "DEPT2");
+				course.stringMatcher("departmentType", "COMPUTER_SCIENCE|MATHEMATICS|MECHANICAL_ENGINEERING|SCIENCE", "MECHANICAL_ENGINEERING");
+				course.numberType("credits", 10);
+				course.stringType("teacherId", "TEACHER42");
+				course.stringMatcher("term", "WINTER|SUMMER", "SUMMER");
+				course.numberType("startYear", 2024);
+				course.unorderedArray("enrolledStudentsIds", student -> student.stringType("STUDENT31"));
+				course.numberType("enrolledStudentsCount", 1);
+				course.object("courseTime", ct -> {
+					ct.stringType("daysOfWeek", "MONDAY");
+					ct.numberType("startHour", 8);
+					ct.numberType("startMinute", 30);
+					ct.numberType("endHour", 10);
+					ct.numberType("endMinute", 0);
+				});
+				course.stringType("roomId", "ROOM101");
+			});
+		}).build();
+	}
+
+	@Pact(consumer = PEOPLE_SERVICE_COMPONENT_NAME, provider = SCHOOL_SERVICE_COMPONENT_NAME)
+	V4Pact getCoursesDetailBatchLookupEmptyPact(PactDslWithProvider builder) {
+		return builder
+			.given("Courses with details do not exist")
+			.uponReceiving("A request for course details batch")
+			.method("GET")
+			.path("/school/course/lookup/batch")
+			.matchQuery("courseIds", "[a-zA-Z0-9,]+", "COURSE1,COURSE2")
+			.willRespondWith()
+			.status(BATCH_LOOKUP_NO_COURSES_FOUND.getStatusCode())
+			.toPact(V4Pact.class);
+	}
+
+	@Test
+	@PactTestFor(pactMethod = "getCoursesDetailBatchLookupEmptyPact", pactVersion = PactSpecVersion.V4)
+	void getCoursesDetailBatchLookupEmptyTest() {
+		var response = schoolServiceClient.getCoursesDetailBatchLookup(Set.of("COURSE1", "COURSE2"));
+
+		assertThat(response).isNotNull();
+		assertThat(response.getCourses()).isEmpty();
+	}
+
+	@Pact(consumer = PEOPLE_SERVICE_COMPONENT_NAME, provider = SCHOOL_SERVICE_COMPONENT_NAME)
+	V4Pact getCoursesDetailBatchLookupIncompletePact(PactDslWithProvider builder) {
+		return builder
+				.given("Not all courses with details exist")
+				.uponReceiving("A request for course details batch")
+				.method("GET")
+				.path("/school/course/lookup/batch")
+				.matchQuery("courseIds", "[a-zA-Z0-9,]+", "COURSE1,COURSE2")
+				.willRespondWith()
+				.status(SchoolServiceClient.SchoolServiceResponseCodes.BATCH_LOOKUP_INCOMPLETE_COURSE_INFO.getStatusCode())
+				.body(courseDetailsResponseBodyIncomplete())
+				.toPact(V4Pact.class);
+	}
+
+	@Test
+	@PactTestFor(pactMethod = "getCoursesDetailBatchLookupIncompletePact", pactVersion = PactSpecVersion.V4)
+	void getCoursesDetailBatchLookupIncompleteTest() {
+		var response = schoolServiceClient.getCoursesDetailBatchLookup(Set.of("COURSE1", "COURSE2"));
+
+		assertThat(response).isNotNull();
+		assertThat(response.getCourses()).hasSize(1);
+		assertThat(response.isCourseInfoComplete()).isFalse();
+	}
+
+	private static DslPart courseDetailsResponseBodyIncomplete() {
+		return newJsonArrayUnordered(array -> {
+			array.object(course -> {
+				course.stringType("id", "COURSE1");
+				course.stringType("courseName", "Mathematics");
+				course.stringType("courseCode", "MATH101");
+				course.stringType("description", "An introductory course to Mathematics.");
+				course.stringType("departmentId", "DEPT1");
+				course.stringMatcher("departmentType", "COMPUTER_SCIENCE|MATHEMATICS|MECHANICAL_ENGINEERING|SCIENCE", "MATHEMATICS");
+				course.numberType("credits", 5);
+				course.stringType("teacherId", "TEACHER1");
+				course.stringMatcher("term", "WINTER|SUMMER", "WINTER");
+				course.numberType("startYear", 2024);
+				course.unorderedArray("enrolledStudentsIds", student -> student.stringType("STUDENT1"));
+				course.numberType("enrolledStudentsCount", 1);
 				course.object("courseTime", ct -> {
 					ct.stringType("daysOfWeek", "MONDAY");
 					ct.numberType("startHour", 8);
