@@ -102,7 +102,7 @@ jobs:
     - name: Can I deploy shared GHA
       uses: pactflow/actions/can-i-deploy@v2
       with:
-        broker_url: ${{ secrets.PACT_BROKER_URL }}
+        broker_url: ${{ env.PACT_BROKER_URL }}
         username: ${{ secrets.PACT_BROKER_USERNAME }}
         password: ${{ secrets.PACT_BROKER_PASSWORD }}
         application_name: ${{ env.COMPONENT_NAME_PASCAL_CASE }}
