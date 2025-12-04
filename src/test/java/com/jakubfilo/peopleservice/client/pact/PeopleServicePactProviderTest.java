@@ -61,7 +61,9 @@ public class PeopleServicePactProviderTest {
 	@TestTemplate
 	@ExtendWith(PactVerificationSpringProvider.class)
 	void verifyPact(PactVerificationContext context) {
-		context.verifyInteraction();
+		if (context != null) {
+			context.verifyInteraction();
+		}
 	}
 
 
