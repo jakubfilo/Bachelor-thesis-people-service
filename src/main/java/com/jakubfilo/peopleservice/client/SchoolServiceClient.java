@@ -2,11 +2,13 @@ package com.jakubfilo.peopleservice.client;
 
 import java.util.Set;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.jakubfilo.peopleservice.client.api.CourseControllerApi;
 import com.jakubfilo.peopleservice.client.api.ExternalCourseControllerApi;
 import com.jakubfilo.peopleservice.client.api.MultipleCourseDetail;
+import com.jakubfilo.peopleservice.client.model.CourseDetail;
 import com.jakubfilo.peopleservice.client.model.CourseTimetableDetail;
 import com.jakubfilo.peopleservice.client.model.EnrollStudentInCoursesResponse;
 import com.jakubfilo.peopleservice.rest.exception.InvalidCourseIdsException;
@@ -24,7 +26,15 @@ public class SchoolServiceClient {
 	private final CourseControllerApi courseControllerApi;
 
 	public MultipleCourseDetail getCoursesDetailBatchLookup(Set<String> courseIds) {
-		var apiResponse = externalCourseControllerApi.getCourseDetailsBatchWithHttpInfo(courseIds);
+		ResponseEntity<Set<CourseDetail>> apiResponse = null;
+		try {
+			apiResponse = externalCourseControllerApi.getCourseDetailsBatchWithHttpInfo(courseIds);
+		} catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+			return MultipleCourseDetail.builder()
+					.courses(Set.of())
+					.courseInfoComplete(false)
+					.build();
+		}
 
 		return MultipleCourseDetail.builder()
 				.courses(apiResponse.getBody())

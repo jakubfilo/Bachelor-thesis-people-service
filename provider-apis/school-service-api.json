@@ -371,7 +371,7 @@
             }
           },
           "404": {
-            "description": "Some courses were not found"
+            "description": "No courses from specified were found"
           }
         }
       }
