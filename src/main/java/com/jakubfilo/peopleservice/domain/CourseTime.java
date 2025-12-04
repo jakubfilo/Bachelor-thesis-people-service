@@ -2,9 +2,11 @@ package com.jakubfilo.peopleservice.domain;
 
 import java.time.DayOfWeek;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class CourseTime implements Comparable<CourseTime> {
 
 	private DayOfWeek dayOfWeek;

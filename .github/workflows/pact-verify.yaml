@@ -107,6 +107,7 @@ jobs:
         password: ${{ secrets.PACT_BROKER_PASSWORD }}
         application_name: ${{ env.COMPONENT_NAME_PASCAL_CASE }}
         version: ${{ needs.setup.outputs.short-sha }}
+        to_environment: prod
         retry_while_unknown: 10
         retry_interval: 10
 

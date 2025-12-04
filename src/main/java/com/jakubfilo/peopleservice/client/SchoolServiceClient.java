@@ -4,13 +4,14 @@ import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 
 import com.jakubfilo.peopleservice.client.api.CourseControllerApi;
+import com.jakubfilo.peopleservice.client.api.EnrollStudentInCoursesResponse;
 import com.jakubfilo.peopleservice.client.api.ExternalCourseControllerApi;
 import com.jakubfilo.peopleservice.client.api.MultipleCourseDetail;
 import com.jakubfilo.peopleservice.client.model.CourseDetail;
 import com.jakubfilo.peopleservice.client.model.CourseTimetableDetail;
-import com.jakubfilo.peopleservice.client.model.EnrollStudentInCoursesResponse;
 import com.jakubfilo.peopleservice.rest.exception.InvalidCourseIdsException;
 
 import lombok.Getter;
@@ -29,7 +30,7 @@ public class SchoolServiceClient {
 		ResponseEntity<Set<CourseDetail>> apiResponse = null;
 		try {
 			apiResponse = externalCourseControllerApi.getCourseDetailsBatchWithHttpInfo(courseIds);
-		} catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+		} catch (HttpClientErrorException.NotFound e) {
 			return MultipleCourseDetail.builder()
 					.courses(Set.of())
 					.courseInfoComplete(false)
@@ -53,7 +54,26 @@ public class SchoolServiceClient {
 	}
 
 	public EnrollStudentInCoursesResponse enrollStudentToCourses(String studentId, Set<String> courseIds) {
-		return externalCourseControllerApi.enrollStudentInCourses(studentId, courseIds);
+		ResponseEntity<com.jakubfilo.peopleservice.client.model.EnrollStudentInCoursesResponse> apiResponse = null;
+		try {
+			apiResponse = externalCourseControllerApi.enrollStudentInCoursesWithHttpInfo(studentId, courseIds);
+		} catch (HttpClientErrorException.NotFound e) {
+			return EnrollStudentInCoursesResponse.builder()
+					.enrolledCourses(Set.of())
+					.studentId(studentId)
+					.build();
+		}
+
+		var responseBody = apiResponse.getBody();
+
+		if (responseBody == null) {
+			throw new RuntimeException("Response body expected");
+		}
+
+		return EnrollStudentInCoursesResponse.builder()
+				.studentId(responseBody.getStudentId())
+				.enrolledCourses(responseBody.getEnrolledCourses())
+				.build();
 	}
 
 	@RequiredArgsConstructor

@@ -376,7 +376,7 @@
         }
       }
     },
-    "/school/course/time/batch/": {
+    "/school/course/time/batch": {
       "get": {
         "tags": [
           "course-controller"
@@ -451,7 +451,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "Student enrolled in all courses",
             "content": {
               "application/json": {
@@ -461,8 +461,8 @@
               }
             }
           },
-          "404": {
-            "description": "Some courses were not found",
+          "206": {
+            "description": "Student enrolled only in some courses (others not found)",
             "content": {
               "application/json": {
                 "schema": {
@@ -470,6 +470,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "No course from selected was found"
           }
         }
       }
@@ -845,6 +848,7 @@
       },
       "EnrollStudentInCoursesResponse": {
         "type": "object",
+        "required": ["studentId", "enrolledCourses"],
         "properties": {
           "studentId": {
             "type": "string"
@@ -872,7 +876,7 @@
       "CourseTime": {
         "type": "object",
         "properties": {
-          "daysOfWeek": {
+          "dayOfWeek": {
             "$ref": "#/components/schemas/DayOfWeek"
           },
           "startHour": {
