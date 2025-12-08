@@ -83,7 +83,7 @@ public class PeopleServicePactProviderTest {
 			.thenReturn(new MultipleStudentsDetailRepresentation(Set.of(
 				StudentDetailRepresentation.builder()
 					.id("STUDENT1")
-					.name("Maria Perez Fernandez Muntez")
+					.name("Jakub Filo") // in provider tests, the value doesnt have to match exact value that is in consumner, only match the form and format - in this case, regex for "^[A-Za-z]+( [A-Za-z]+)+$"
 					.email("student1@muni.cz")
 					.gpa(3.75f)
 					.phoneNumber(PhoneNumber.builder().number("777123456").countryCode("+420").build())
