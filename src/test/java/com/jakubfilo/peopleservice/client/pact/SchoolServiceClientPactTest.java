@@ -214,18 +214,6 @@ class SchoolServiceClientPactTest {
 	void getCourseTimetableBatchLookupTest() {
 		var result = schoolServiceClient.getCourseTimetableBatchLookup(Set.of("COURSE1"), "STUDENT1");
 
-//		var expectedCourseTimetable = CourseTimetableDetail.builder()
-//				.courseId("COURSE1")
-//				.courseTime(CourseTime.builder()
-//						.dayOfWeek(DayOfWeek.MONDAY)
-//						.startHour(8)
-//						.startMinute(30)
-//						.endHour(10)
-//						.endMinute(0)
-//						.build())
-//				.roomId("ROOM101")
-//				.build();
-
 		assertThat(result).isNotNull();
 		assertThat(result).hasSize(1);
 		assertThat(result.iterator().next())

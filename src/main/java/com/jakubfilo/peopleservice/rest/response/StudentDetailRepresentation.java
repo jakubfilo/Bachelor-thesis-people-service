@@ -48,7 +48,7 @@ public class StudentDetailRepresentation {
 				.email("Unknown")
 				.phoneNumber(PhoneNumber.builder()
 						.number("Unknown")
-						.country(null)
+						.countryCode("Unknown")
 						.build())
 				.build();
 	}

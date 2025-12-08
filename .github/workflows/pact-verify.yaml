@@ -91,23 +91,23 @@ jobs:
         path: target/failsafe-reports/*.pact.*.xml
         reporter: java-junit
 
-  can-i-deploy:
-#    if: github.ref != github.event.repository.default_branch # should be here but I have to uncomment
-    needs: [ setup, contract-verification ]
-    name: Can I Deploy
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v5
-
-    - name: Can I deploy shared GHA
-      uses: pactflow/actions/can-i-deploy@v2
-      with:
-        broker_url: ${{ env.PACT_BROKER_URL }}
-        username: ${{ secrets.PACT_BROKER_USERNAME }}
-        password: ${{ secrets.PACT_BROKER_PASSWORD }}
-        application_name: ${{ env.COMPONENT_NAME_PASCAL_CASE }}
-        version: ${{ needs.setup.outputs.short-sha }}
-        to_environment: prod
-        retry_while_unknown: 10
-        retry_interval: 10
-
+#  can-i-deploy:
+##    if: github.ref != github.event.repository.default_branch # should be here but I have to uncomment
+#    needs: [ setup, contract-verification ]
+#    name: Can I Deploy
+#    runs-on: ubuntu-latest
+#    steps:
+#    - uses: actions/checkout@v5
+#
+#    - name: Can I deploy shared GHA
+#      uses: pactflow/actions/can-i-deploy@v2
+#      with:
+#        broker_url: ${{ env.PACT_BROKER_URL }}
+#        username: ${{ secrets.PACT_BROKER_USERNAME }}
+#        password: ${{ secrets.PACT_BROKER_PASSWORD }}
+#        application_name: ${{ env.COMPONENT_NAME_PASCAL_CASE }}
+#        version: ${{ needs.setup.outputs.short-sha }}
+#        to_environment: prod
+#        retry_while_unknown: 10
+#        retry_interval: 10
+# requires pact broker to have environments, not sure if I want to setup those. Do I even have
