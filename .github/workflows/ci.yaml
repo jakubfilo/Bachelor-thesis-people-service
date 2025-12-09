@@ -50,9 +50,38 @@ jobs:
         BRANCH_NAME=${{ github.head_ref || github.ref_name }}
         echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
 
+  check-service-compiles:
+    name: Check that service compiles
+    runs-on: ubuntu-latest
+    needs: [ setup ]
+    steps:
+    - uses: actions/checkout@v5
+    - name: Set up JDK
+      uses: actions/setup-java@v5
+      with:
+        java-version-file: .java-version
+        distribution: corretto
+    - name: Maven cache
+      uses: actions/cache/restore@v4
+      id: maven-cache
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-m2-
+    - name: Build with Maven
+      shell: sh
+      run: ./mvnw -B install -DskipTests=true
+    - name: Save cache if not hit
+      if: steps.maven-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+
   contract-verification:
     name: Contract verification
-    needs: setup
+    needs: [ setup, check-service-compiles ]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -107,7 +136,7 @@ jobs:
   generate-openapi-spec:
     name: Generate OpenAPI spec and upload as artifact
     runs-on: ubuntu-latest
-    needs: [ setup ]
+    needs: [ setup, check-service-compiles ]
     steps:
     - uses: actions/checkout@v5
     - uses: ./.github/actions/generate-openapi
@@ -118,7 +147,7 @@ jobs:
   validate-openapi:
     name: OpenAPI Spec Validation
     runs-on: ubuntu-latest
-    needs: [ setup, generate-openapi-spec ]
+    needs: [ setup, check-service-compiles, generate-openapi-spec ]
     steps:
     - uses: actions/checkout@v5
     - uses: actions/download-artifact@v5
@@ -130,9 +159,9 @@ jobs:
         spec-path: ${{ env.SPEC_FILE }}
 
   publish-spec:
-    name: Publish OpenApi spec to predefined URL (AISA)
+    name: Publish OpenApi spec to predefined URL (FI Muni Aisa)
     runs-on: ubuntu-latest
-    needs: [ setup, generate-openapi-spec, validate-openapi, contract-verification ]
+    needs: [ setup, check-service-compiles, generate-openapi-spec, validate-openapi, contract-verification ]
     if: >
       github.ref_name == github.event.repository.default_branch &&
       !startsWith(github.event.head_commit.message, '[AUTO CI-BOT]')
@@ -152,9 +181,9 @@ jobs:
         overwrite: true
 
   commit-openapi-spec:
-    name: Commit OpenAPI spec to repository
+    name: Commit OpenAPI spec to school service repo
     runs-on: ubuntu-latest
-    needs: [ setup, generate-openapi-spec, validate-openapi, contract-verification ]
+    needs: [ setup, check-service-compiles, generate-openapi-spec, validate-openapi, contract-verification ]
     if: >
       github.ref_name == github.event.repository.default_branch &&
       !startsWith(github.event.head_commit.message, '[AUTO CI-BOT]')
@@ -163,7 +192,7 @@ jobs:
     - uses: actions/download-artifact@v5
       with:
         name: ${{ env.SPEC_ARTIFACT_NAME }}
-    - name: Push openapi.json to Repo B
+    - name: Push People service OpenAPI spec to School service repo
       uses: dmnemec/copy_file_to_another_repo_action@v1.1.1
       env:
         API_TOKEN_GITHUB: ${{ secrets.BACHELOR_THESIS_REPOS_TOKEN }}
