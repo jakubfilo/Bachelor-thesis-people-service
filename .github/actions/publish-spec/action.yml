@@ -1,0 +1,32 @@
+name: Publish OpenAPI spec
+author: jakub.filo
+description: Publish OpenAPI spec to FI Muni Aisa server
+
+inputs:
+  aisa_host:
+    description: 'Aisa server host'
+    required: true
+  aisa_username:
+    description: 'XLogin username for Aisa server'
+    required: true
+  aisa_password:
+    description: 'FI MUNI faculty password for Aisa server'
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+  - uses: actions/checkout@v5
+  - uses: actions/download-artifact@v5
+    with:
+      name: ${{ env.SPEC_ARTIFACT_NAME }}
+  - name: Upload OpenApi spec to Aisa server
+    uses: appleboy/scp-action@v1
+    with:
+      host: ${{ inputs.aisa_host }}
+      username: ${{ inputs.aisa_username }}
+      password: ${{ inputs.aisa_password }}
+      source: ${{ env.SPEC_FILE }}
+      target: ${{ env.AISA_TARGET_PATH }}
+      overwrite: true

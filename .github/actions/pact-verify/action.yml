@@ -1,0 +1,74 @@
+name: Verify Pacts
+author: jakub.filo
+description: Verify Pact contracts and publish results to Pact Broker
+
+inputs:
+  branch-name:
+    description: 'Branch name of the service'
+    required: true
+  short-sha:
+    description: 'Short SHA of the commit'
+    required: true
+  long-sha:
+    description: 'Long SHA of the commit'
+    required: true
+  pactbroker_username:
+    description: 'Pact Broker username'
+    required: true
+  pactbroker_password:
+    description: 'Pact Broker password'
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+  - name: Checkout
+    uses: actions/checkout@v5
+    with:
+      ref: ${{ inputs.long-sha }}
+
+  - name: Set up JDK
+    uses: actions/setup-java@v5
+    with:
+      java-version-file: .java-version
+      distribution: corretto
+
+  - name: Maven cache
+    uses: actions/cache@v4
+    with:
+      path: ~/.m2
+      key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+      restore-keys: |
+        ${{ runner.os }}-m2-
+
+  - name: Pact (contract) verification
+    shell: sh
+    run: |
+      ./mvnw verify pact:publish \
+          -Dpact.tests.skip=false \
+          -Ddefault.tests.skip=true \
+          -Dpactbroker.url=${{ env.PACT_BROKER_URL }} \
+          -Dpactbroker.auth.username=${{ inputs.pactbroker_username }} \
+          -Dpactbroker.auth.password="${{ inputs.pactbroker_password }}" \
+          -Dpact.broker.url=${{ env.PACT_BROKER_URL }} \
+          -Dpact.broker.user="${{ inputs.pactbroker_username }}" \
+          -Dpact.broker.password="${{ inputs.pactbroker_password }}" \
+          -Dpact.verifier.publishResults=true \
+          -Dpact.provider.version=${{ inputs.short-sha }} \
+          -Dpactbroker.providerBranch=${{ inputs.branch-name }} \
+          -Dpact.provider.branch=${{ inputs.branch-name }} \
+          -Dpact.consumer.version=${{ inputs.short-sha }} \
+          -Dpact.publish.consumer.branchName=${{ inputs.branch-name }} \
+          -Dpact.tags=${{ inputs.short-sha }} \
+          -Dpact_do_not_track=true
+  #    pactbroker.X is for provider part
+  #    pact.broker.X is for consumer part
+
+  - name: Contracts Report
+    uses: dorny/test-reporter@v2
+    if: success() || failure()
+    with:
+      name: Contract Tests
+      path: target/failsafe-reports/*.pact.*.xml
+      reporter: java-junit

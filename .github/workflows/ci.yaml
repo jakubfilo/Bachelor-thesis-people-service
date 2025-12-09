@@ -1,5 +1,5 @@
 name: Release pipeline
-run-name: ${{ github.actor }} ran release pipeline for ${{ github.event_name == 'pull_request' && github.event.pull_request.title || github.ref_name }}
+run-name: Release pipeline for ${{ github.event_name == 'pull_request' && github.event.pull_request.title || github.ref_name }}
 
 defaults:
   run:
@@ -19,7 +19,7 @@ permissions:
 env:
   SPEC_ARTIFACT_NAME: people-service-openapi-spec
   SPEC_FILE: ./people-service-api.json
-  AISA_TARGET_PATH: public_html/bachelor_thesis/people_service/api
+  AISA_TARGET_PATH: public_html/bachelor-thesis/people-service/api
   PACT_BROKER_URL: ${{ vars.PACT_BROKER_URL }}
   GIT_COMMIT: ${{ github.sha }}
   COMPONENT_NAME_PASCAL_CASE: PeopleService
@@ -56,82 +56,24 @@ jobs:
     needs: [ setup ]
     steps:
     - uses: actions/checkout@v5
-    - name: Set up JDK
-      uses: actions/setup-java@v5
-      with:
-        java-version-file: .java-version
-        distribution: corretto
-    - name: Maven cache
-      uses: actions/cache/restore@v4
-      id: maven-cache
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-m2-
-    - name: Build with Maven
-      shell: sh
-      run: ./mvnw -B install -DskipTests=true
-    - name: Save cache if not hit
-      if: steps.maven-cache.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v4
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+    - uses: ./.github/actions/check-service-compiles
 
   contract-verification:
     name: Contract verification
     needs: [ setup, check-service-compiles ]
     runs-on: ubuntu-latest
+    if: >
+      github.ref_name == github.event.repository.default_branch &&
+      !startsWith(github.event.head_commit.message, '[AUTO CI-BOT]')
     steps:
-    - name: Checkout
-      uses: actions/checkout@v5
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/pact-verify
       with:
-        ref: ${{needs.setup.outputs.long-sha}}
-
-    - name: Set up JDK
-      uses: actions/setup-java@v5
-      with:
-        java-version-file: .java-version
-        distribution: corretto
-
-    - name: Maven cache
-      uses: actions/cache@v4
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-m2-
-
-    - name: Pact (contract) verification
-      shell: sh
-      run: |
-        ./mvnw verify pact:publish \
-            -Dpact.tests.skip=false \
-            -Ddefault.tests.skip=true \
-            -Dpactbroker.url=${{ env.PACT_BROKER_URL }} \
-            -Dpactbroker.auth.username=${{ secrets.PACT_BROKER_USERNAME }} \
-            -Dpactbroker.auth.password="${{ secrets.PACT_BROKER_PASSWORD }}" \
-            -Dpact.broker.url=${{ env.PACT_BROKER_URL }} \
-            -Dpact.broker.user="${{ secrets.PACT_BROKER_USERNAME }}" \
-            -Dpact.broker.password="${{ secrets.PACT_BROKER_PASSWORD }}" \
-            -Dpact.verifier.publishResults=true \
-            -Dpact.provider.version=${{ needs.setup.outputs.short-sha }} \
-            -Dpactbroker.providerBranch=${{ needs.setup.outputs.branch-name }} \
-            -Dpact.provider.branch=${{ needs.setup.outputs.branch-name }} \
-            -Dpact.consumer.version=${{ needs.setup.outputs.short-sha }} \
-            -Dpact.publish.consumer.branchName=${{ needs.setup.outputs.branch-name }} \
-            -Dpact.tags=${{ needs.setup.outputs.short-sha }} \
-            -Dpact_do_not_track=true
-    #    pactbroker.X is for provider part
-    #    pact.broker.X is for consumer part
-    - name: Contracts Report
-      uses: dorny/test-reporter@v2
-      if: success() || failure()
-      with:
-        name: Contract Tests
-        path: target/failsafe-reports/*.pact.*.xml
-        reporter: java-junit
+        branch-name: ${{ needs.setup.outputs.branch-name }}
+        short-sha: ${{ needs.setup.outputs.short-sha }}
+        long-sha: ${{ needs.setup.outputs.long-sha }}
+        pactbroker_username: ${{ secrets.PACT_BROKER_USERNAME }}
+        pactbroker_password: ${{ secrets.PACT_BROKER_PASSWORD }}
 
   generate-openapi-spec:
     name: Generate OpenAPI spec and upload as artifact
@@ -167,21 +109,14 @@ jobs:
       !startsWith(github.event.head_commit.message, '[AUTO CI-BOT]')
     steps:
     - uses: actions/checkout@v5
-    - uses: actions/download-artifact@v5
+    - uses: ./.github/actions/publish-spec
       with:
-        name: ${{ env.SPEC_ARTIFACT_NAME }}
-    - name: Upload OpenApi spec to AISA server
-      uses: appleboy/scp-action@v1
-      with:
-        host: ${{ secrets.AISA_HOST }}
-        username: ${{ secrets.AISA_USERNAME }}
-        password: ${{ secrets.AISA_PASSWORD }}
-        source: ${{ env.SPEC_FILE }}
-        target: ${{ env.AISA_TARGET_PATH }}
-        overwrite: true
+        aisa_host: ${{ secrets.AISA_HOST }}
+        aisa_username: ${{ secrets.AISA_USERNAME }}
+        aisa_password: ${{ secrets.AISA_PASSWORD }}
 
   commit-openapi-spec:
-    name: Commit OpenAPI spec to school service repo
+    name: Commit OpenAPI spec to School service repo
     runs-on: ubuntu-latest
     needs: [ setup, check-service-compiles, generate-openapi-spec, validate-openapi, contract-verification ]
     if: >
@@ -189,18 +124,6 @@ jobs:
       !startsWith(github.event.head_commit.message, '[AUTO CI-BOT]')
     steps:
     - uses: actions/checkout@v5
-    - uses: actions/download-artifact@v5
+    - uses: ./.github/actions/commit-openapi-spec
       with:
-        name: ${{ env.SPEC_ARTIFACT_NAME }}
-    - name: Push People service OpenAPI spec to School service repo
-      uses: dmnemec/copy_file_to_another_repo_action@v1.1.1
-      env:
-        API_TOKEN_GITHUB: ${{ secrets.BACHELOR_THESIS_REPOS_TOKEN }}
-      with:
-        source_file: ${{ env.SPEC_FILE }}
-        destination_repo: jakubfilo/Bachelor-thesis-school-service
-        destination_folder: ${{ env.TARGET_PATH_OPENAPI_SCHOOL_SERVICE }}
-        user_email: 'ci-bot@people-service.org'
-        user_name: 'ci-bot'
-        destination_branch: 'master'
-        commit_message: '[AUTO CI-BOT]: update OpenAPI spec from People service'
+        gh_repo_token: ${{ secrets.BACHELOR_THESIS_REPOS_TOKEN }}

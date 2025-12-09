@@ -1,0 +1,29 @@
+name: Commit OpenAPI Spec to School service repo
+author: jakub.filo
+description: Commit OpenAPI specification file of this service (provider) to School service repository (consumer)
+
+inputs:
+  gh_repo_token:
+    description: 'GitHub token with write access to the destination repository'
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+  - uses: actions/checkout@v5
+  - uses: actions/download-artifact@v5
+    with:
+      name: ${{ env.SPEC_ARTIFACT_NAME }}
+  - name: Push People service OpenAPI spec to School service repo
+    uses: dmnemec/copy_file_to_another_repo_action@v1.1.1
+    env:
+      API_TOKEN_GITHUB: ${{ inputs.gh_repo_token }}
+    with:
+      source_file: ${{ env.SPEC_FILE }}
+      destination_repo: jakubfilo/Bachelor-thesis-school-service
+      destination_folder: ${{ env.TARGET_PATH_OPENAPI_SCHOOL_SERVICE }}
+      user_email: 'ci-bot@people-service.org'
+      user_name: 'ci-bot'
+      destination_branch: 'master'
+      commit_message: '[AUTO CI-BOT]: update OpenAPI spec from People service'
