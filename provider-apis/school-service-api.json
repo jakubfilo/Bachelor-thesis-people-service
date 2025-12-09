@@ -10,7 +10,7 @@
         "tags": [
           "course-controller"
         ],
-        "summary": "Return ids of all courses",
+        "description": "Return ids of all courses",
         "operationId": "getAllCoursesIds",
         "responses": {
           "200": {
@@ -34,7 +34,7 @@
         "tags": [
           "course-controller"
         ],
-        "summary": "Return brief detail of courses that are available for student to take (e.g. not yet completed)",
+        "description": "Return brief detail of courses that are available for student to take (e.g. not yet completed)",
         "operationId": "getAllAvailableCourses",
         "parameters": [
           {
@@ -98,7 +98,7 @@
         "tags": [
           "course-controller"
         ],
-        "summary": "Return complete details of all courses",
+        "description": "Return complete details of all courses",
         "operationId": "getAllCoursesDetails",
         "responses": {
           "200": {
@@ -119,7 +119,7 @@
         "tags": [
           "course-controller"
         ],
-        "summary": "Return brief details of all courses",
+        "description": "Return brief details of all courses",
         "operationId": "getAllCoursesDetailsBrief",
         "responses": {
           "200": {
@@ -140,7 +140,7 @@
         "tags": [
           "course-controller"
         ],
-        "summary": "Return details of course with given id",
+        "description": "Return details of course with given id",
         "operationId": "getCourseDetail",
         "parameters": [
           {
@@ -175,7 +175,7 @@
         "tags": [
           "course-controller"
         ],
-        "summary": "Return brief details of course with given id",
+        "description": "Return brief details of course with given id",
         "operationId": "getCourseDetailBrief",
         "parameters": [
           {
@@ -210,7 +210,7 @@
         "tags": [
           "course-controller"
         ],
-        "summary": "Return list of students (enriched with info from student service) enrolled in course with given id. When People service is unavailable, returns list of only student ids without enriching",
+        "description": "Return list of students (enriched with info from student service) enrolled in course with given id. When People service is unavailable, returns list of only student ids without enriching",
         "operationId": "getCourseStudents",
         "parameters": [
           {
@@ -248,7 +248,7 @@
         "tags": [
           "course-controller-demo-cases"
         ],
-        "summary": "Return list of students (enriched with info from student service) enrolled in course with given id.",
+        "description": "Return list of students (enriched with info from student service) enrolled in course with given id.",
         "operationId": "getCourseStudentsNoFallback",
         "parameters": [
           {
@@ -286,7 +286,7 @@
         "tags": [
           "course-controller-demo-cases"
         ],
-        "summary": "Should return list of students in a course enriched with info from people service. However, people service has not been implemented yet. Returns only list of student ids",
+        "description": "Should return list of students in a course enriched with info from people service. However, people service has not been implemented yet. Returns only list of student ids",
         "operationId": "getCourseStudentsNotImplemented",
         "parameters": [
           {
@@ -324,7 +324,7 @@
         "tags": [
           "external-course-controller"
         ],
-        "summary": "Return details of courses with given ids, skips the ones that are not found",
+        "description": "Return details of courses with given ids, skips the ones that are not found",
         "operationId": "getCourseDetailsBatch",
         "parameters": [
           {
@@ -381,7 +381,7 @@
         "tags": [
           "course-controller"
         ],
-        "summary": "Return time details for a batch of courses",
+        "description": "Return time details for a batch of courses",
         "operationId": "getCourseTimes",
         "parameters": [
           {
@@ -424,7 +424,7 @@
         "tags": [
           "external-course-controller"
         ],
-        "summary": "Enroll student in given courses",
+        "description": "Enroll student in given courses",
         "operationId": "enrollStudentInCourses",
         "parameters": [
           {
@@ -482,7 +482,7 @@
         "tags": [
           "department-controller"
         ],
-        "summary": "Return list of all departments",
+        "description": "Return list of all departments",
         "operationId": "getAllDepartments",
         "responses": {
           "200": {
@@ -503,7 +503,7 @@
         "tags": [
           "department-controller"
         ],
-        "summary": "Return detail of selected department",
+        "description": "Return detail of selected department",
         "operationId": "getAllDepartmentDetails",
         "parameters": [
           {
@@ -538,7 +538,7 @@
         "tags": [
           "department-controller"
         ],
-        "summary": "Return details about head of department",
+        "description": "Return details about head of department",
         "operationId": "getDepartmentHead",
         "parameters": [
           {
@@ -848,7 +848,10 @@
       },
       "EnrollStudentInCoursesResponse": {
         "type": "object",
-        "required": ["studentId", "enrolledCourses"],
+        "required": [
+          "studentId",
+          "enrolledCourses"
+        ],
         "properties": {
           "studentId": {
             "type": "string"
