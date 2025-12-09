@@ -5,6 +5,10 @@ inputs:
   artifact_name:
     description: Name of the artifact to save the OpenAPI spec as
     required: true
+  spec_file:
+    description: Path to the OpenAPI spec file to be uploaded
+    required: true
+    default: ./people-service-api.json
 
 runs:
   using: composite
@@ -31,7 +35,7 @@ runs:
     uses: actions/upload-artifact@v4
     with:
       name: ${{ inputs.artifact_name }}
-      path: ./api/people-service-api.json
+      path: ${{ inputs.spec_file }}
       overwrite: true
       retention-days: 1
 

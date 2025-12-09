@@ -239,7 +239,7 @@
 					<apiDocsUrl>http://localhost:8080/v3/api-docs</apiDocsUrl>
 					<skip>${openapi.skip}</skip>
 					<outputFileName>people-service-api.json</outputFileName>
-					<outputDir>api</outputDir>
+					<outputDir>${project.basedir}</outputDir>
 				</configuration>
 				<executions>
 					<execution>

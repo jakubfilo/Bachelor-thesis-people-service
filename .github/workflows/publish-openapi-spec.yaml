@@ -7,7 +7,8 @@ defaults:
 
 env:
   SPEC_ARTIFACT_NAME: people-service-openapi-spec
-  SPEC_FILE: ./api/people-service-api.json
+  SPEC_FILE: ./people-service-api.json
+  AISA_TARGET_PATH: public_html/bachelor_thesis/people_service/api
 
 on:
   push:
@@ -37,22 +38,39 @@ jobs:
     - uses: ./.github/actions/generate-openapi
       with:
         artifact_name: ${{ env.SPEC_ARTIFACT_NAME }}
+        spec_file: ${{ env.SPEC_FILE }}
 
-#  publish-spec:
-#    name: Publish OpenApi spec to predefined URL
-#    runs-on: ubuntu-latest
-#    needs: [ setup, generate-openapi-spec ]
-#    steps:
-#    - uses: actions/checkout@v5
-#    - uses: actions/download-artifact@v5
-#      with:
-#        name: ${{ env.SPEC_ARTIFACT_NAME }}
-#        path: ${{ env.SPEC_FILE }}
-#    - name: Upload OpenApi spec
-#      with:
-#        docs-path: ${{ env.SPEC_FILE }}
-#        project: ${{ github.event.repository.name }}
-#        version: current
-#        api-token: ${{ secrets.DOCS_API_TOKEN }}
-# TODO Finish me and upload me to AISA
+  validate-openapi:
+    name: OpenAPI Spec Validation
+    runs-on: ubuntu-latest
+    needs: [ setup, generate-openapi-spec ]
+    steps:
+    - uses: actions/checkout@v5
+    - uses: actions/download-artifact@v5
+      with:
+        name: ${{ env.SPEC_ARTIFACT_NAME }}
+    - name: Validate OpenAPI Specification
+      uses: jakubfilo/openapi-validator@main
+      with:
+        spec-path: ${{ env.SPEC_FILE }}
+
+  publish-spec:
+    name: Publish OpenApi spec to predefined URL
+    runs-on: ubuntu-latest
+    needs: [ setup, generate-openapi-spec, validate-openapi ]
+    steps:
+    - uses: actions/checkout@v5
+    - uses: actions/download-artifact@v5
+      with:
+        name: ${{ env.SPEC_ARTIFACT_NAME }}
+    - name: Upload OpenApi spec
+      uses: appleboy/scp-action@v1
+      with:
+        host: ${{ secrets.AISA_HOST }}
+        username: ${{ secrets.AISA_USERNAME }}
+        password: ${{ secrets.AISA_PASSWORD }}
+        source: ${{ env.SPEC_FILE }}
+        target: ${{ env.AISA_TARGET_PATH }}
+        overwrite: true
+
 
