@@ -26,6 +26,8 @@ import com.jakubfilo.peopleservice.rest.response.MultipleStudentsDetailRepresent
 import com.jakubfilo.peopleservice.rest.response.StudentDetailRepresentation;
 import com.jakubfilo.peopleservice.rest.response.StudentTimetableRepresentation;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -44,6 +46,11 @@ public class StudentsController {
 	private final StudentsFacade studentFacade;
 	private NotificationMapper notificationMapper = NotificationMapper.INSTANCE;
 
+	@Operation(
+			description = "Returns list of student details (enrolled courses, personal details) for the given set of student IDs",
+			responses = {
+					@ApiResponse(responseCode = "200", description = "Returned student details successfully"),
+			})
 	@GetMapping("/detail/batch-lookup")
 	public ResponseEntity<MultipleStudentsDetailRepresentation> getStudentDetailsBatchLookup(
 			@NotEmpty @RequestParam(name = "ids") Set<String> studentIds) {
@@ -52,16 +59,28 @@ public class StudentsController {
 		return ResponseEntity.ok(studentDetails);
 	}
 
-	@GetMapping("/detail/{id}/brief")
-	public ResponseEntity<StudentDetailRepresentation> getStudentDetailsBrief(@NotBlank @PathVariable(name = "id") String studentId) {
+	@Operation(
+			description = "Returns brief details about student",
+			responses = {
+					@ApiResponse(responseCode = "200", description = "Returned student detail successfully"),
+					@ApiResponse(responseCode = "404", description = "Student with given ID not found")
+			})
+	@GetMapping("/detail/{studentId}/brief")
+	public ResponseEntity<StudentDetailRepresentation> getStudentDetailsBrief(@NotBlank @PathVariable(name = "studentId") String studentId) {
 		var studentDetail = studentFacade.getStudentDetailBrief(studentId);
 		return studentDetail.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@GetMapping("/detail/{id}/complete")
+	@Operation(
+			description = "Returns complete details about student, enriched with full course info",
+			responses = {
+					@ApiResponse(responseCode = "200", description = "Returned student detail successfully"),
+					@ApiResponse(responseCode = "404", description = "Student with given ID not found")
+			})
+	@GetMapping("/detail/{studentId}/complete")
 	public ResponseEntity<EnrichedStudentRepresentation> getStudentEnrichedWithCourseInfo(
-			@NotBlank @PathVariable(name = "id") String studentId) {
+			@NotBlank @PathVariable(name = "studentId") String studentId) {
 
 		var studentDetail = studentFacade.getStudentDetailEnriched(studentId);
 		return studentDetail.map(ResponseEntity::ok)
@@ -74,6 +93,11 @@ public class StudentsController {
 	 * mapped to various responses (e.g. in {@link ControllerAdvisor})
 	 * With the API spec, one can simply go over the expected return codes and responses and know what to expect.
 	 */
+	@Operation(
+			description = "Enrolls a new student into the system",
+			responses = {
+					@ApiResponse(responseCode = "201", description = "Student enrolled successfully")
+			})
 	@PostMapping(path = "/enroll", consumes = APPLICATION_JSON_VALUE)
 	public ResponseEntity<StudentDetailRepresentation> enrollStudent(@Valid @RequestBody StudentDetailRepresentation studentDetail) {
 		var enrolledStudent = studentFacade.enrollStudent(studentDetail);
@@ -82,20 +106,32 @@ public class StudentsController {
 				.body(enrolledStudent);
 	}
 
-	@GetMapping("/timetable/{id}")
-	public ResponseEntity<StudentTimetableRepresentation> getTimetableForStudent(@PathVariable(name = "id") String studentId) {
+	@Operation(
+			description = "Returns timetable for the given student ID",
+			responses = {
+					@ApiResponse(responseCode = "200", description = "Returned timetable successfully"),
+					@ApiResponse(responseCode = "404", description = "Student with given ID not found")
+			})
+	@GetMapping("/timetable/{studentId}")
+	public ResponseEntity<StudentTimetableRepresentation> getTimetableForStudent(@PathVariable(name = "studentId") String studentId) {
 		var timetable = studentFacade.getTimetableForStudent(studentId);
 		return timetable.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PostMapping("/notify/{id}")
-	public ResponseEntity<StudentNotification> notifyStudent(@PathVariable(name = "id") String studentId,
+	@Operation(
+			description = "Sends notification to the given student",
+			responses = {
+					@ApiResponse(responseCode = "201", description = "Notification sent successfully")
+			})
+	@PostMapping("/notify/{studentId}")
+	public ResponseEntity<StudentNotification> notifyStudent(@PathVariable(name = "studentId") String studentId,
 			@RequestBody StudentNotificationDto studentNotificationApi) {
 
 		var studentNotification = notificationMapper.map(studentNotificationApi, studentId);
 		studentFacade.notifyStudent(studentNotification);
-		return ResponseEntity.ok(studentNotification);
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(studentNotification);
 	}
 
 //	/**
