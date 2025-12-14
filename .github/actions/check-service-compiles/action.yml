@@ -23,7 +23,7 @@ runs:
         ${{ runner.os }}-m2-
   - name: Build with Maven
     shell: sh
-    run: ./mvnw -B install -DskipTests=true
+    run: ./mvnw -B compile
   - name: Save cache if not hit
     if: steps.maven-cache.outputs.cache-hit != 'true'
     uses: actions/cache/save@v4
