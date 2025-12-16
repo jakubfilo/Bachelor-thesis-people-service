@@ -56,7 +56,11 @@ public class SchoolServiceClient {
 	public EnrollStudentInCoursesResponse enrollStudentToCourses(String studentId, Set<String> courseIds) {
 		ResponseEntity<com.jakubfilo.peopleservice.client.model.EnrollStudentInCoursesResponse> apiResponse = null;
 		try {
-			apiResponse = externalCourseControllerApi.enrollStudentInCoursesWithHttpInfo(studentId, courseIds);
+			var requestParams = new ExternalCourseControllerApi.EnrollStudentInCoursesRequest();
+			requestParams.courseIds(courseIds);
+			requestParams.studentId(studentId);
+
+			apiResponse = externalCourseControllerApi.enrollStudentInCoursesWithHttpInfo(requestParams);
 		} catch (HttpClientErrorException.NotFound e) {
 			return EnrollStudentInCoursesResponse.builder()
 					.enrolledCourses(Set.of())

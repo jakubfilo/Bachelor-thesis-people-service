@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.annotation.DirtiesContext;
 
 import com.jakubfilo.peopleservice.client.SchoolServiceClient;
 import com.jakubfilo.peopleservice.client.model.CourseTimetableDetail;
@@ -37,6 +38,7 @@ import jakarta.inject.Inject;
 				ClientConfig.class, SchoolServiceClient.class
 		}
 )
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD) // had to add this, for some reason tests started breaking when run together, but passed when ran individually
 @Consumer(PEOPLE_SERVICE_COMPONENT_NAME)
 @MockServerConfig(port = "8000")
 @ExtendWith({ MockitoExtension.class, PactConsumerTestExt.class })

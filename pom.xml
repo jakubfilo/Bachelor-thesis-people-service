@@ -21,7 +21,7 @@
         <java.version>25</java.version>
 		<mapstruct.version>1.6.3</mapstruct.version>
 		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
-        <openapi-generator-maven-plugin.version>7.9.0</openapi-generator-maven-plugin.version>
+        <openapi-generator-maven-plugin.version>7.17.0</openapi-generator-maven-plugin.version>
 		<springdoc.openapi.plugin.version>1.5</springdoc.openapi.plugin.version>
         <pact.version>4.6.17</pact.version>
 
@@ -268,9 +268,10 @@
                             <modelPackage>${package.name}.client.model</modelPackage>
                             <invokerPackage>${package.name}.client.invoker</invokerPackage>
                             <configOptions>
-                                <library>resttemplate</library>
+                                <library>restclient</library>
                                 <dateLibrary>java8</dateLibrary>
                                 <useJakartaEe>true</useJakartaEe>
+                                <useSingleRequestParameter>static</useSingleRequestParameter>
                             </configOptions>
                         </configuration>
                     </execution>
