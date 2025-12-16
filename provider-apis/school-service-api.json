@@ -621,7 +621,7 @@
         "type": "object",
         "required": [
           "id",
-          "name",
+          "courseName",
           "courseCode"
         ],
         "properties": {
